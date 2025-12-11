@@ -5,7 +5,6 @@ import yaml
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MIMIC_DIR = '/home/jovyan/data_common/mimiciv/'
-#MIMIC_DIR = '/home/christelsirocchi/Documents/MIMIC/MIMIC-IV-data/'
 MIMIC_LABS_DIR = MIMIC_DIR +'hosp/labevents.csv.gz'
 UKER_DIR = '/home/jovyan/data_common/ped-data.db'
 
