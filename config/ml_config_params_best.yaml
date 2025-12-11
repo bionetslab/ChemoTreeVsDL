@@ -1,0 +1,110 @@
+Gradient Boosting:
+  mimic_cohort_NF_30_days:
+    learning_rate: 0.10
+    max_iter: 200
+    max_depth: null
+  mimic_cohort_aplasia_45_days:
+    learning_rate: 0.10
+    max_iter: 200
+    max_depth: 10
+  uker_cohort_NF_30_days:
+    learning_rate: 0.05
+    max_iter: 200
+    max_depth: null
+  uker_cohort_aplasia_45_days:
+    learning_rate: 0.10
+    max_iter: 200
+    max_depth: null
+
+Logistic Regression:
+  mimic_cohort_NF_30_days:
+    C: 0.01
+    penalty: l2
+    class_weight: null
+    max_iter: 2000
+  mimic_cohort_aplasia_45_days:
+    C: 0.01
+    penalty: l2
+    class_weight: null
+    max_iter: 2000
+  uker_cohort_NF_30_days:
+    C: 0.01
+    penalty: l2
+    class_weight: null
+    max_iter: 2000
+  uker_cohort_aplasia_45_days:
+    C: 0.01
+    penalty: l2
+    class_weight: null
+    max_iter: 2000
+
+Random Forest:
+  mimic_cohort_NF_30_days:
+    n_estimators: 250
+    max_depth: 10
+    min_samples_split: 15
+    class_weight: {0: 1, 1: 1}
+  mimic_cohort_aplasia_45_days:
+    n_estimators: 250
+    max_depth: 10
+    min_samples_split: 5
+    class_weight: {0: 1, 1: 1}
+  uker_cohort_NF_30_days:
+    n_estimators: 250
+    max_depth: 10
+    min_samples_split: 5
+    class_weight: {0: 1, 1: 1}
+  uker_cohort_aplasia_45_days:
+    n_estimators: 250
+    max_depth: 10
+    min_samples_split: 5
+    class_weight: {0: 1, 1: 1}
+
+Xgboost:
+  mimic_cohort_NF_30_days:
+    learning_rate: 0.01
+    max_depth: 3
+    n_estimators: 200
+    scale_pos_weight: 1
+    objective: binary:logistic
+    eval_metric: logloss
+  mimic_cohort_aplasia_45_days:
+    learning_rate: 0.10
+    max_depth: 5
+    n_estimators: 200
+    scale_pos_weight: 1
+    objective: binary:logistic
+    eval_metric: logloss
+  uker_cohort_NF_30_days:
+    learning_rate: 0.10
+    max_depth: 5
+    n_estimators: 200
+    scale_pos_weight: 1
+    objective: binary:logistic
+    eval_metric: logloss
+  uker_cohort_aplasia_45_days:
+    learning_rate: 0.10
+    max_depth: 5
+    n_estimators: 150
+    scale_pos_weight: 1
+    objective: binary:logistic
+    eval_metric: logloss
+
+CatBoost:
+  mimic_cohort_NF_30_days:
+    depth: 8
+    learning_rate: 0.03
+    n_estimators: 200
+  mimic_cohort_aplasia_45_days:
+    depth: 8
+    learning_rate: 0.03
+    n_estimators: 500
+  uker_cohort_NF_30_days:
+    depth: 8
+    learning_rate: 0.03
+    n_estimators: 500
+  uker_cohort_aplasia_45_days:
+    depth: 8
+    learning_rate: 0.03
+    n_estimators: 500
+

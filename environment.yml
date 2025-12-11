@@ -1,0 +1,31 @@
+name: flabnet_ml_pipeline_env
+channels:
+  - conda-forge
+  - pytorch
+  - defaults
+
+dependencies:
+  - python=3.10
+  - imbalanced-learn
+  - lightgbm
+  - scikit-learn=1.0.2
+  - matplotlib
+  - ipykernel
+  - ipywidgets
+  - liblapack
+  - pandas
+  - tqdm
+  - numpy
+  - liblapacke
+  - py-xgboost
+  - shap
+  - nbstripout
+  - catboost
+  - pip
+  - pip:
+      - torch==2.0.0+cu117 --index-url https://download.pytorch.org/whl/cu117
+      - torchvision==0.15.1+cu117 --index-url https://download.pytorch.org/whl/cu117
+      - torchaudio==2.0.1 --index-url https://download.pytorch.org/whl/cu117
+      - transformers==4.35.2
+      - pyyaml
+
