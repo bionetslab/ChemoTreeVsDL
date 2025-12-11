@@ -33,7 +33,7 @@ This repository provides a reproducible pipeline to:
   - `ts_config_params_best.yaml` – Best parameters/cohort for neural network models
 
 - **ml_model_training/** – Training scripts for classical models
-- **ts_model_training/** – Training scripts for temporal deep learning models
+- **ts_model_training/** – Training scripts for deep learning models
 
 
 ## Usage
@@ -44,4 +44,7 @@ This repository provides a reproducible pipeline to:
 conda env create -f environment.yml
 conda activate flabnet_ml_pipeline_env
 
-2. Run
+2. Train models
+
+Classical models: run train_ml_models.sh
+Temporal deep learning models: run train_ts_models.sh
