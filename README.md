@@ -2,7 +2,7 @@
 
 This repository provides a reproducible pipeline to:
 
-- Extract cohorts from **MIMIC-IV** and a **Code dataset from a MII node** (Erlangen University Hospital) for patients with cancer diagnoses undergoing chemotherapy.  
+- Extract cohorts from **MIMIC-IV** and a **Code dataset from a MII node** (Erlangen University Hospital, UKEr) for patients with cancer diagnoses undergoing chemotherapy.  
 - Train **classical machine learning** and **temporal deep learning** models to predict chemotherapy-induced side effects using longitudinal lab data and demographic features.
 
 ## Models
@@ -43,8 +43,33 @@ This repository provides a reproducible pipeline to:
 ```bash
 conda env create -f environment.yml
 conda activate flabnet_ml_pipeline_env
+```
+### 2. Train models
 
-2. Train models
+#### Classical models
+Run the training script with:
 
-Classical models: run train_ml_models.sh
-Temporal deep learning models: run train_ts_models.sh
+```bash
+bash train_ml_models.sh [mimic|uker] [prepare|train|full_run]
+```
+
+- mimic – for MIMIC-IV cohorts
+- uker – for Erlangen University Hospital cohorts
+
+Workflow options:
+- prepare – prepare inputs
+- train – train models on prepared inputs
+- full_run – prepare inputs and train models
+
+Example:
+
+```bash
+bash train_ml_models.sh mimic full_run
+```
+
+#### Temporal deep models
+To run temporal deep models on already prepared inputs:
+
+```bash
+bash train_ts_models.sh
+```
