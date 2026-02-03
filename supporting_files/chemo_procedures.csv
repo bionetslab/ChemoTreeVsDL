@@ -1,0 +1,49 @@
+icd_code;icd_version;long_title
+3E03005;10;Introduction of Other Antineoplastic into Peripheral Vein, Open Approach
+3E0300M;10;Introduction of Antineoplastic, Monoclonal Antibody, into Peripheral Vein, Open Approach
+3E03305;10;Introduction of Other Antineoplastic into Peripheral Vein, Percutaneous Approach
+3E0330M;10;Introduction of Antineoplastic, Monoclonal Antibody, into Peripheral Vein, Percutaneous Approach
+3E04005;10;Introduction of Other Antineoplastic into Central Vein, Open Approach
+3E0400M;10;Introduction of Antineoplastic, Monoclonal Antibody, into Central Vein, Open Approach
+3E04305;10;Introduction of Other Antineoplastic into Central Vein, Percutaneous Approach
+3E0430M;10;Introduction of Antineoplastic, Monoclonal Antibody, into Central Vein, Percutaneous Approach
+XW03336;10;Introduction of Durvalumab Antineoplastic into Peripheral Vein, Percutaneous Approach, New Technology Group 6
+XW03351;10;Introduction of Blinatumomab Antineoplastic Immunotherapy into Peripheral Vein, Percutaneous Approach, New Technology Group 1
+XW03358;10;Introduction of Mosunetuzumab Antineoplastic into Peripheral Vein, Percutaneous Approach, New Technology Group 8
+XW033B3;10;Introduction of Cytarabine and Daunorubicin Liposome Antineoplastic into Peripheral Vein, Percutaneous Approach, New Technology Group 3
+XW033D6;10;Introduction of Atezolizumab Antineoplastic into Peripheral Vein, Percutaneous Approach, New Technology Group 6
+XW033Q5;10;Introduction of Tagraxofusp-erzs Antineoplastic into Peripheral Vein, Percutaneous Approach, New Technology Group 5
+XW033S5;10;Introduction of Iobenguane I-131 Antineoplastic into Peripheral Vein, Percutaneous Approach, New Technology Group 5
+XW04336;10;Introduction of Durvalumab Antineoplastic into Central Vein, Percutaneous Approach, New Technology Group 6
+XW04351;10;Introduction of Blinatumomab Antineoplastic Immunotherapy into Central Vein, Percutaneous Approach, New Technology Group 1
+XW04358;10;Introduction of Mosunetuzumab Antineoplastic into Central Vein, Percutaneous Approach, New Technology Group 8
+XW043B3;10;Introduction of Cytarabine and Daunorubicin Liposome Antineoplastic into Central Vein, Percutaneous Approach, New Technology Group 3
+XW043D6;10;Introduction of Atezolizumab Antineoplastic into Central Vein, Percutaneous Approach, New Technology Group 6
+XW043Q5;10;Introduction of Tagraxofusp-erzs Antineoplastic into Central Vein, Percutaneous Approach, New Technology Group 5
+XW043S5;10;Introduction of Iobenguane I-131 Antineoplastic into Central Vein, Percutaneous Approach, New Technology Group 5
+3E05005;10;Introduction of Other Antineoplastic into Peripheral Artery, Open Approach
+3E0500M;10;Introduction of Antineoplastic, Monoclonal Antibody, into Peripheral Artery, Open Approach
+3E05305;10;Introduction of Other Antineoplastic into Peripheral Artery, Percutaneous Approach
+3E0530M;10;Introduction of Antineoplastic, Monoclonal Antibody, into Peripheral Artery, Percutaneous Approach
+3E06005;10;Introduction of Other Antineoplastic into Central Artery, Open Approach
+3E0600M;10;Introduction of Antineoplastic, Monoclonal Antibody, into Central Artery, Open Approach
+3E06305;10;Introduction of Other Antineoplastic into Central Artery, Percutaneous Approach
+3E0630M;10;Introduction of Antineoplastic, Monoclonal Antibody, into Central Artery, Percutaneous Approach
+3E01305;10;Introduction of Other Antineoplastic into Subcutaneous Tissue, Percutaneous Approach
+3E0130M;10;Introduction of Antineoplastic, Monoclonal Antibody, into Subcutaneous Tissue, Percutaneous Approach
+XW01348;10;Introduction of Teclistamab Antineoplastic into Subcutaneous Tissue, Percutaneous Approach, New Technology Group 8
+3E0D305;10;Introduction of Other Antineoplastic into Mouth and Pharynx, Percutaneous Approach
+3E0D30M;10;Introduction of Antineoplastic, Monoclonal Antibody, into Mouth and Pharynx, Percutaneous Approach
+3E0D705;10;Introduction of Other Antineoplastic into Mouth and Pharynx, Via Natural or Artificial Opening
+3E0D70M;10;Introduction of Antineoplastic, Monoclonal Antibody, into Mouth and Pharynx, Via Natural or Artificial Opening
+3E0DX05;10;Introduction of Other Antineoplastic into Mouth and Pharynx, External Approach
+3E0DX0M;10;Introduction of Antineoplastic, Monoclonal Antibody, into Mouth and Pharynx, External Approach
+XW0DXJ5;10;Introduction of Apalutamide Antineoplastic into Mouth and Pharynx, External Approach, New Technology Group 5
+XW0DXL5;10;Introduction of Erdafitinib Antineoplastic into Mouth and Pharynx, External Approach, New Technology Group 5
+XW0DXR5;10;Introduction of Venetoclax Antineoplastic into Mouth and Pharynx, External Approach, New Technology Group 5
+XW0DXV5;10;Introduction of Gilteritinib Antineoplastic into Mouth and Pharynx, External Approach, New Technology Group 5
+3E0R305;10;Introduction of Other Antineoplastic into Spinal Canal, Percutaneous Approach
+3E0R30M;10;Introduction of Antineoplastic, Monoclonal Antibody, into Spinal Canal, Percutaneous Approach
+3E0S305;10;Introduction of Other Antineoplastic into Epidural Space, Percutaneous Approach
+3E0S30M;10;Introduction of Antineoplastic, Monoclonal Antibody, into Epidural Space, Percutaneous Approach
+Z51;10;Chemotherapy
