@@ -1,4 +1,4 @@
-# Chemotherapy Side Effect Prediction Pipeline
+# FLabBench - Chemotherapy Side Effect Prediction Pipeline
 
 This repository provides a reproducible pipeline to:
 
