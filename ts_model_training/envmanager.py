@@ -24,7 +24,7 @@ class EnvManager:
         # set env config
         self.args = args
         self.nfolds = num_folds
-        self.config_path = args.config_path or "ts_model_training/ts_config_params.yaml"
+        self.config_path = args.config_path or "config/ts_config_params.yaml"
 
         # load config and initialise environment
         self.set_device()

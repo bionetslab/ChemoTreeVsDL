@@ -4,7 +4,7 @@ import pickle
 from ts_model_training.utils import safe_pos_freq, remove_features_not_in_train, compute_lab_frequency, ids_in_data, set_splits, compute_class_weight
 from ts_model_training.preprocessor import PreprocessorA, PreprocessorB, PreprocessorC_sup, PreprocessorC_unsup
 
-from config.constants import PROJECT_ROOT
+from config.constants import PROJECT_ROOT, TOP_FEATURES_PATH
 
 class TimeSeriesDataset:
     def __init__(self, args):
@@ -47,7 +47,7 @@ class TimeSeriesDataset:
         # select features specified by file
         if self.args.feature_threshold:
             #feature_file = self.args.paths["feature_path"] / f'fold_{self.args.fold}_features.pkl'
-            feature_file = self.args.paths["feature_path"] / 'mimic_top100_features.pkl'
+            feature_file = TOP_FEATURES_PATH
             with open(feature_file, 'rb') as f:
                 self.selected_features = list(map(str, pickle.load(f)))
             self.data = self.data[self.data["itemid"].isin(self.selected_features)]

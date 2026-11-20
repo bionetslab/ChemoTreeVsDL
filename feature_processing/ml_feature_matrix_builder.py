@@ -9,6 +9,7 @@ import pickle
 import os
 from typing import Tuple, List, Optional, Dict, Any
 from abc import ABC, abstractmethod
+from config.constants import TOP_FEATURES_PATH
 
 
 class BaseFeatureExtractor(ABC):
@@ -65,8 +66,8 @@ class TimeSeriesExtractor(BaseFeatureExtractor):
         y_df = labels.set_index("hadm_id").loc[hadm_ids, "label"].reset_index(drop=True)
 
         if feature_threshold:
-            cc_top_features = pd.read_csv(f"{saved_data_path}/top_features/feat_imp_summary.csv")
-            selected_features = cc_top_features.itemid.head(100)
+            with open(TOP_FEATURES_PATH, 'rb') as f:
+                selected_features = pickle.load(f)
             #print("Feature selection applied (Top 100 features in cancer chemo cohort), Threshold:", len(selected_features))
             data = data[data["itemid"].isin(selected_features)]
 

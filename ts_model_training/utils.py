@@ -8,7 +8,7 @@ import pickle
 import torch.backends.cudnn as cudnn
 from transformers import set_seed as transformers_set_seed 
 from pathlib import Path
-from config.constants import PROJECT_ROOT
+from config.constants import PROJECT_ROOT, SUPPORTING_FILES_DIR
 
 # UTILS for PREPROCESSING
 
@@ -218,7 +218,7 @@ def set_all_paths(args, out=True):
     input_features = f"{cohort}_admissions_labs_{days}_days"
     saved_data_path = Path(PROJECT_ROOT) / dataset / "saved_data"
 
-    feature_path = saved_data_path / "top_features" # / cohort
+    feature_path = SUPPORTING_FILES_DIR
     data_path = saved_data_path / "processed_admission_features_for_ts" / cohort /f"{input_features}_to_ts.csv.gz"
     cohort_path = saved_data_path / "cohorts" / f"{cohort}.csv.gz"
 

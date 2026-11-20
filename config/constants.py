@@ -4,7 +4,9 @@ import yaml
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-MIMIC_DIR = '/home/jovyan/data_common/mimiciv/'
+SUPPORTING_FILES_DIR = PROJECT_ROOT / 'supporting_files'
+TOP_FEATURES_PATH = SUPPORTING_FILES_DIR / 'mimic_top_features_cancer_chemo.pkl'
+MIMIC_DIR = '/Users/zy51nise/Documents/BIONETs/FLabNet/Data/mimiciv/2.0/'
 MIMIC_LABS_DIR = MIMIC_DIR +'hosp/labevents.csv.gz'
 UKER_DIR = '/home/jovyan/data_common/ped-data.db'
 

@@ -1,6 +1,7 @@
 import pandas as pd
 import os
 from tqdm import tqdm
+from config.constants import SUPPORTING_FILES_DIR
 #-----------------------
 # Load Diagnosis Table
 def get_diagnosis(module_path: str) -> pd.DataFrame:
@@ -131,7 +132,7 @@ def extract_disease_cohort(mimic4_path:str, subject_col:str, visit_col:str, admi
 
 def extract_chemo_cohort(df:pd.DataFrame, mimic4_path:str):
 
-    proc_code = pd.read_csv(os.path.join(mimic4_path, 'hosp/chemo_procedures.csv'),header=0, chunksize=None, delimiter=';') #input from Jakob
+    proc_code = pd.read_csv(SUPPORTING_FILES_DIR / 'chemo_procedures.csv',header=0, chunksize=None, delimiter=';') #input from Jakob
     
     icd_code = proc_code['icd_code'].tolist()
     icd_code=icd_code[:47] # Last row is for Z51 ommited

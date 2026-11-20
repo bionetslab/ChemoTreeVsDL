@@ -11,5 +11,5 @@ run_commands() {
 }
 
 template="python -m ts_model_training.main"
-run_commands "$template --static_threshold 0 --hid_dim_demo 32 --prefix test --grid nested  --config ts_config_params.yaml"
+run_commands "$template --static_threshold 0 --hid_dim_demo 32 --prefix test --grid nested  --config config/ts_config_params.yaml"
 
