@@ -22,7 +22,7 @@ class DataLoader:
                  oversampling_method: str,
                  saved_data_path: str,
                  paths: Any,
-                 feat_type: str = 'standard',
+                 feat_type: str = 'VMD',
                  agg_interval: int = 24):
         """
         Initialize the data loader.
@@ -35,7 +35,7 @@ class DataLoader:
             oversampling_method: Method for oversampling
             saved_data_path: Path to saved data
             paths: Path configuration object
-            feat_type: Feature type ('standard' for traditional, 'V', 'M', 'D', 'VD', 'VM', 'MD', 'VMD' for timeseries)
+            feat_type: Feature type ('V', 'M', 'D', 'VD', 'VM', 'MD', 'VMD')
             agg_interval: Aggregation interval in hours (default: 24)
         """
         self.target_cohort = target_cohort
@@ -48,12 +48,7 @@ class DataLoader:
         self.feat_type = feat_type
         self.agg_interval = agg_interval
         
-        #set feature_extractor_type based on feat_type
-        if feat_type == 'standard':
-            self.feature_extractor_type = 'traditional'
-        else:
-            # For timeseries features, use 'timeseries' extractor
-            self.feature_extractor_type = 'timeseries'
+        self.feature_extractor_type = 'timeseries'
         
         # Initialize feature extractor
         self.feature_extractor = FeatureExtractorFactory.create_extractor(self.feature_extractor_type)
@@ -199,7 +194,7 @@ def load_and_process_data(target_cohort: str,
                          paths: Any,
                          fold: int,
                          load_training_data_boolen: bool = False,
-                         feat_type: str = 'standard') -> Optional[Tuple]:
+                         feat_type: str = 'VMD') -> Optional[Tuple]:
     """
     Convenience function for loading and processing data.
     
@@ -207,7 +202,7 @@ def load_and_process_data(target_cohort: str,
     Useful for backward compatibility or when you don't need to reuse the loader.
     
     Args:
-        feat_type: Feature type ('standard' for traditional, 'V', 'M', 'D', 'VD', 'VM', 'MD', 'VMD' for timeseries)
+        feat_type: Feature type ('V', 'M', 'D', 'VD', 'VM', 'MD', 'VMD')
     """
     loader = DataLoader(
         target_cohort=target_cohort,

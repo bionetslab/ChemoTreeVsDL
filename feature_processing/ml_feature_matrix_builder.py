@@ -31,135 +31,6 @@ class BaseFeatureExtractor(ABC):
         pass
 
 
-class TraditionalMLExtractor(BaseFeatureExtractor):
-    """Traditional ML feature extraction (original getXY approach)."""
-    
-    def extract_features(self, target_cohort: str, ids: np.ndarray, 
-                        feature_combination_method: str, training_data_types: List[str], 
-                        fold: int, feature_threshold: bool, saved_data_path: str,
-                        feat_type: str = "standard", itemids: list = None, bins: list = None, **kwargs) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
-        """Extract traditional ML features ."""
-        
-        # Validate feat_type for traditional extractor
-        if feat_type not in ["standard"]:
-            print(f"Warning: feat_type '{feat_type}' not supported for traditional extractor. Using 'standard'.")
-            feat_type = "standard"
-        
-        X_df = pd.DataFrame()   
-        y_df = pd.DataFrame()   
-        subj_ids_out, hadm_ids_out = [], []
-
-        concat_column_names = None
-        agg_interval = kwargs.get('agg_interval', 24)
-        labels = pd.read_csv(f'{saved_data_path}/processed_admission_features_csv/{target_cohort}/agg_interval_{agg_interval}h/labels.csv', header=0)
-        
-        if feature_threshold:
-            cc_top_features = pd.read_csv(f'{saved_data_path}/top_features/feat_imp_summary.csv')
-            selected_features = cc_top_features.itemid.head(100)
-            selected_features = list(map(str, selected_features))
-            #print("Feature selection applied (Top 100 features in cancer chemo cohort), Threshold: ", len(selected_features))
-
-        for subj_id, hadm_id in ids:
-            y = labels[labels['hadm_id'] == hadm_id]['label']
-
-            # --------------- DYNAMIC Data --------------------------------------
-            dyn_path = f'{saved_data_path}/processed_admission_features_csv/{target_cohort}/agg_interval_{agg_interval}h/{hadm_id}/dynamic.csv'
-            if not os.path.exists(dyn_path):
-                continue  
-
-            dyn = pd.read_csv(dyn_path, header=[0, 1])
-            
-            # feature selection
-            if feature_threshold > 0:
-                dyn = dyn.loc[:, ('LAB', dyn['LAB'].columns.intersection(selected_features))]
-                
-            dyn_columns = (dyn.columns.get_level_values(0)).unique().tolist()
-            dyn_training_data_types = list(set(training_data_types) & set(dyn_columns))
-
-            if not dyn_training_data_types:
-                dyn_df = pd.DataFrame()
-            else:  
-                dyn = dyn[dyn_training_data_types]
-
-                # If concatenation 
-                concat_cols = []
-                if feature_combination_method == 'concatenate':
-                    dyn.columns = dyn.columns.droplevel(0)
-                    
-                    # prepare concatenated column names
-                    if concat_column_names is None:
-                        cols = dyn.columns
-                        time = dyn.shape[0]
-                        
-                        for t in range(time):
-                            cols_t = [x + "_" + str(t) for x in cols]
-                            concat_cols.extend(cols_t)
-                    
-                    dyn = dyn.to_numpy()
-                    dyn = dyn.reshape(1, -1)
-                    dyn_df = pd.DataFrame(data=dyn, columns=concat_cols)
-                    
-                # If aggregation
-                else:
-                    dyn_df = pd.DataFrame()
-                    for key in dyn.columns.levels[0]:   
-                        dyn_temp = dyn[key]
-
-                        if ((key == "LAB") or (key == "MEDS")):
-                            agg = dyn_temp.aggregate("mean")
-                            agg = agg.reset_index()
-                        else:
-                            agg = dyn_temp.aggregate("max")
-                            agg = agg.reset_index()
-                            
-                        if dyn_df.empty:
-                            dyn_df = agg
-                        else:
-                            dyn_df = pd.concat([dyn_df, agg], axis=0)
-
-                    dyn_df = dyn_df.T
-                    dyn_df.columns = dyn_df.iloc[0]
-                    dyn_df = dyn_df.iloc[1:, :]
-
-            if "DIAG" in training_data_types:
-                stat = pd.read_csv(f'{saved_data_path}/processed_admission_features_csv/{target_cohort}/agg_interval_{agg_interval}h/' + str(hadm_id) + '/static.csv', header=[0, 1])
-                stat = stat['COND']               
-            else:
-                stat = pd.DataFrame()
-
-            if "DEMO" in training_data_types:
-                demo = pd.read_csv(f'{saved_data_path}/processed_admission_features_csv/{target_cohort}/agg_interval_{agg_interval}h/' + str(hadm_id) + '/demo.csv', header=0)
-            else: 
-                demo = pd.DataFrame()
-            
-            X_row = pd.concat([dyn_df, stat, demo], axis=1)
-            if not X_row.empty and not y.empty:
-                X_df = pd.concat([X_df, X_row], axis=0) if not X_df.empty else X_row
-                y_df = pd.concat([y_df, y], axis=0) if not y_df.empty else y
-            
-                subj_ids_out.append(subj_id)
-                hadm_ids_out.append(hadm_id)
-    
-        if itemids is None and bins is None:
-            # Training: return itemids and bins (empty lists for traditional extractor)
-            return (
-                X_df.reset_index(drop=True),
-                y_df.reset_index(drop=True),
-                pd.Series(subj_ids_out, name="subject_id"),
-                pd.Series(hadm_ids_out, name="hadm_id"),
-                [],  # itemids (not used in traditional extractor)
-                []   # bins (not used in traditional extractor)
-            )
-        else:
-            # Test/Val: return only features
-            return (
-                X_df.reset_index(drop=True),
-                y_df.reset_index(drop=True),
-                pd.Series(subj_ids_out, name="subject_id"),
-                pd.Series(hadm_ids_out, name="hadm_id")
-            )
-
-
 class TimeSeriesExtractor(BaseFeatureExtractor):
     """Time series feature extraction (original getXplus approach)."""
     
@@ -227,9 +98,6 @@ class TimeSeriesExtractor(BaseFeatureExtractor):
             delta_df.columns = [f"D_{itemid}" for itemid in delta_df.columns]
 
         # Combine features based on feat_type
-        # For timeseries, 'standard' maps to 'V'
-        if feat_type == "standard":
-            feat_type = "V"
         X_df = self._combine_feature_types(x_df, m_df, delta_df, demo, feat_type)
         if itemids is None and bins is None:
             # Training: return itemids and bins
@@ -345,7 +213,6 @@ class FeatureExtractorFactory:
     """Factory class to create appropriate feature extractors."""
     
     _extractors = {
-        'traditional': TraditionalMLExtractor,
         'timeseries': TimeSeriesExtractor,
     }
     
@@ -362,24 +229,3 @@ class FeatureExtractorFactory:
     def get_available_extractors(cls) -> List[str]:
         """Get list of available extractor types."""
         return list(cls._extractors.keys())
-
-
-# Convenience functions for backward compatibility
-def getXY(target_cohort, ids: np.ndarray, feature_combination_method: str, 
-          training_data_types: List[str], fold: int, feature_threshold: bool, 
-          saved_data_path: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
-    """Backward compatibility wrapper for traditional ML features."""
-    extractor = TraditionalMLExtractor()
-    return extractor.extract_features(target_cohort, ids, feature_combination_method, 
-                                     training_data_types, fold, feature_threshold, saved_data_path)
-
-
-def getXplus(ids, saved_data_path, target_cohort, feature_threshold=False, 
-            feature_combination_method="concatenate", feat_type="VMD") -> Tuple[pd.DataFrame, pd.DataFrame, List, List]:
-    """Backward compatibility wrapper for time series features."""
-    extractor = TimeSeriesExtractor()
-    X_df, y_df, subj_ids, hadm_ids = extractor.extract_features(
-        target_cohort, ids, feature_combination_method, ["LAB", "DEMO"], 
-        0, feature_threshold, saved_data_path, feat_type=feat_type
-    )
-    return X_df, y_df, subj_ids.tolist(), hadm_ids.tolist()

@@ -25,7 +25,7 @@ def build_training_dir(
     feature_method: str, 
     oversampling: str, 
     feature_selection: bool, 
-    feat_type: str = "standard",
+    feat_type: str = "VMD",
     agg_interval: int = 24
 ) -> Path:
     """Build training directory path with consistent structure."""
@@ -49,7 +49,7 @@ def build_results_dir(
     oversampling: str, 
     feature_selection: bool, 
     grid_search: bool, 
-    feat_type: str = "standard",
+    feat_type: str = "VMD",
     agg_interval: int = 24,
     prefix: str = None
 ) -> Path:
@@ -77,7 +77,7 @@ def build_outputs_dir(
     oversampling: str, 
     feature_selection: bool, 
     grid_search: bool, 
-    feat_type: str = "standard",
+    feat_type: str = "VMD",
     agg_interval: int = 24,
     prefix: str = None
 ) -> Path:
@@ -104,7 +104,7 @@ def build_paths(
     oversampling: str,
     feature_selection: bool= True,
     grid_search: bool = False,
-    feat_type: str = "standard",
+    feat_type: str = "VMD",
     agg_interval: int = 24,
     prefix: str = None,
     random_seed: int = None
@@ -119,7 +119,7 @@ def build_paths(
         oversampling: Oversampling strategy
         feature_selection: Whether feature selection is enabled
         grid_search: Whether grid search is enabled
-        feat_type: Type of features (default: "standard")
+        feat_type: Type of features (default: "VMD")
         agg_interval: Aggregation interval in hours (default: 24)
         prefix: Optional prefix for organizing runs (default: None)
         random_seed: Optional random seed for reproducibility (default: None)

@@ -27,7 +27,7 @@ class MLTrainingPipeline:
                  feature_selection_boolen: bool, training_data_type: list,
                  load_training_data_boolen: bool, grid_search_boolen: bool,
                  num_folds: int = 5,
-                 feat_type: str = 'standard',
+                 feat_type: str = 'VMD',
                  agg_interval: int = 24,
                  prefix: str = '',
                  random_seed: int = None):
@@ -182,8 +182,8 @@ def main():
     parser.add_argument('--feature_selection', type=lambda x: bool(int(x)), default=False)
     parser.add_argument('--load_data', type=lambda x: bool(int(x)), default=False)
     parser.add_argument('--feat_type', type=str, 
-                       choices=["standard","V", "M", "D", "VMD", "VM", "VD", "MD"], 
-                       default="standard")
+                       choices=["V", "M", "D", "VMD", "VM", "VD", "MD"], 
+                       default="VMD")
     parser.add_argument('--agg_interval', type=int, choices=[3, 6, 12, 24], default=24,
                     help='Aggregation interval in hours (e.g., 3, 6, 12, 24)') 
     parser.add_argument('--num_folds', type=int, default=5, help='Number of cross-validation folds')
