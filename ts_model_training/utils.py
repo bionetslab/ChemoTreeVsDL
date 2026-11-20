@@ -271,6 +271,9 @@ def get_output_dir(args):
 
 def load_fold_file(args):
     fold_file = args.paths["CV_folds_path"] / f"fold_{args.fold}.pkl"
+    if not fold_file.exists():
+        seeds = f" --seeds {args.split_seed}" if args.split_seed is not None else ""
+        raise FileNotFoundError(f"{fold_file} not found. Run: python -m utils.create_cv_folds --dataset {args.dataset} --cohorts {args.cohort}{seeds}")
     with open(fold_file, "rb") as f:
         train_ids, val_ids, test_ids = pickle.load(f)
     return train_ids[:, 1], val_ids[:, 1], test_ids[:, 1]

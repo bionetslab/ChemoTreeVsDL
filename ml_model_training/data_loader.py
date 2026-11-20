@@ -3,6 +3,7 @@ Data loading and processing module for ML/NN training.
 """
 
 import pickle
+from pathlib import Path
 from re import sub
 from typing import Tuple, Optional, Any, List
 
@@ -94,7 +95,10 @@ class DataLoader:
     def _extract_and_process_data(self, fold: int) -> Tuple:
         """Extract and process fresh data from folds."""
         # Load fold data
-        with open(self.paths.folds / f'fold_{fold}.pkl', 'rb') as f:
+        fold_path = self.paths.folds / f'fold_{fold}.pkl'
+        if not fold_path.exists():
+            raise FileNotFoundError(f"{fold_path} not found. Run: python -m utils.create_cv_folds --dataset {Path(self.saved_data_path).parent.name} --cohorts {self.target_cohort}")
+        with open(fold_path, 'rb') as f:
             train_ids, val_ids, test_ids = pickle.load(f)
             
         print(f'Feature extractor type: {self.feature_extractor_type}')
