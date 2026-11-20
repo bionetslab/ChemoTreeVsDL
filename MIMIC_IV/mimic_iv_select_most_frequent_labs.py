@@ -1,7 +1,7 @@
-import pickle
+import pandas as pd
 import utils.cohort_utils
 import utils.lab_utils
-from config.constants import MIMIC_DIR, SUPPORTING_FILES_DIR
+from config.constants import MIMIC_DIR, TOP_FEATURES_PATH
 
 
 def select_most_frequent_labs(full_labs, itemids_to_remove, num_features=100):
@@ -30,8 +30,7 @@ def main():
     labs = utils.lab_utils.extract_cohort_labs(MIMIC_DIR, cancer_chemo_cohort, 'charttime', dtypes=None, usecols=None)
     labs = utils.lab_utils.drop_wrong_uom(labs, 0.95)
     selected_features = select_most_frequent_labs(labs, [50934, 50947, 51678])
-    with open(SUPPORTING_FILES_DIR / 'mimic_top_features_cancer_chemo.pkl', 'wb') as f:
-        pickle.dump(selected_features, f)
+    pd.DataFrame({'itemid': selected_features}).to_csv(TOP_FEATURES_PATH, index=False)
 
 
 if __name__ == "__main__":

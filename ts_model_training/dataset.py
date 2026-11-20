@@ -47,9 +47,7 @@ class TimeSeriesDataset:
         # select features specified by file
         if self.args.feature_threshold:
             #feature_file = self.args.paths["feature_path"] / f'fold_{self.args.fold}_features.pkl'
-            feature_file = TOP_FEATURES_PATH
-            with open(feature_file, 'rb') as f:
-                self.selected_features = list(map(str, pickle.load(f)))
+            self.selected_features = list(map(str, pd.read_csv(TOP_FEATURES_PATH)['itemid']))
             self.data = self.data[self.data["itemid"].isin(self.selected_features)]
             self.args.logger.write('\nFeature selected from file: ' + str(len(self.selected_features)))
             
