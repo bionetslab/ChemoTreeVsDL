@@ -7,6 +7,7 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder, StandardScaler
 from imblearn.over_sampling import RandomOverSampler
+from config.constants import RANDOM_SEED
 #os.chdir(os.path.abspath(os.path.join(os.path.dirname(__file__), '../')))
 
 def split_cv_folds (target_cohort:str, num_folds:int, saved_data_path:str, seed: int = None)  -> Tuple[np.ndarray, np.ndarray, np.ndarray] :
@@ -15,13 +16,14 @@ def split_cv_folds (target_cohort:str, num_folds:int, saved_data_path:str, seed:
     
     subject_labels = cohort.groupby("subject_id")['label'].max().reset_index()
 
-    skf = StratifiedKFold(n_splits=num_folds, shuffle=True, random_state= seed)
+    effective_seed = RANDOM_SEED if seed is None else seed
+    skf = StratifiedKFold(n_splits=num_folds, shuffle=True, random_state= effective_seed)
     for fold, (train_idx, test_idx) in enumerate(skf.split(subject_labels, subject_labels['label'])):
         test = subject_labels.loc[test_idx]
         train = subject_labels.loc[train_idx]
 
         # split validation
-        train_idx, val_idx = train_test_split(train.index, test_size=0.2, random_state=seed, stratify=train['label'])
+        train_idx, val_idx = train_test_split(train.index, test_size=0.2, random_state=effective_seed, stratify=train['label'])
         val = subject_labels.loc[val_idx]
         train = subject_labels.loc[train_idx]
 
