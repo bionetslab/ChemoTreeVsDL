@@ -1,7 +1,7 @@
 #!/bin/bash
-prefix="${3:-}"
+prefix="${3:-$(date +%d%m%y)}"
 feature_types=("VMD") #("D" "VD" "VM" "MD") #"V" "M" "D" "VD" "VM" "MD"
-models=("CatBoost") #("Random Forest" "Logistic Regression" "Xgboost" "CatBoost" "Gradient Boosting")
+models=("Random Forest" "Logistic Regression" "Xgboost" "CatBoost" "Gradient Boosting")
 agg_intervals=("24") # "12" "6" "3")
 
 
