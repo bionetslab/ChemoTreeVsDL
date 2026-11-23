@@ -255,7 +255,8 @@ class Loss(nn.Module):
     
 
 class Result_evaluation:
-    def __init__(self):
+    def __init__(self, logger=None):
+        self.log = logger.write if logger is not None else print
         self.all_folds_metrics = []  # Initialize a list to store metrics for each fold
         self.all_folds_params = []    # best params per fold
         self.all_folds_info = []      # fold + model_type info
@@ -276,11 +277,12 @@ class Result_evaluation:
         self.all_folds_metrics.append(metrics_per_fold)  # Append to the list
         self.all_folds_params.append(best_params if best_params is not None else {})
         self.all_folds_info.append({"Fold": fold, "Model": model_type})
+        self.log(f"Test results fold {fold}: " + ", ".join(f"{k}={v:.4f}" for k, v in metrics_per_fold.items()))
 
     def average_metrics_df(self):
         """Compute average + std metrics over folds."""
         if not self.all_folds_metrics:
-            print("No metrics to average.")
+            self.log("No metrics to average.")
             return pd.DataFrame()
 
         metric_keys = self.all_folds_metrics[0].keys()
@@ -299,8 +301,7 @@ class Result_evaluation:
             "Average": [avg_metrics[key] for key in metric_keys],
             "StdDev": [std_metrics[key] for key in metric_keys]
         })
-        print("\n=== AVERAGE METRICS OVER ALL FOLDS ===")
-        print(df.to_string(index=False, float_format="%.4f"))
+        self.log("\n=== AVERAGE METRICS OVER ALL FOLDS ===\n" + df.to_string(index=False, float_format="%.4f"))
         return df
     
     def save_results(self, model_type, output_path):
@@ -336,5 +337,5 @@ class Result_evaluation:
         os.makedirs(output_path, exist_ok=True)
         file_path = os.path.join(output_path, f"{model_type}_results.csv")
         final_df.to_csv(file_path, index=False)
-        #print(f"Results saved to {file_path}")
+        self.log(f"Results saved to {file_path}")
         return final_df

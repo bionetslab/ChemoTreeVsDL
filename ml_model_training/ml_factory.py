@@ -22,9 +22,10 @@ class MLModelFactory:
     }
     
     @classmethod
-    def create_model(cls, model_type: str, grid_search: bool = False, results_path: str = None, cohort: str = None):
+    def create_model(cls, model_type: str, grid_search: bool = False, results_path: str = None, cohort: str = None, logger=None):
         """Create an ML model of the specified type."""
-        
+        log = logger.write if logger is not None else print
+
         # Normalize model type
         model_type_lower = model_type.lower().replace(' ', '_')
         
@@ -44,12 +45,12 @@ class MLModelFactory:
             # Use best parameters if available and cohort is provided
             if cohort and model_type in BEST_PARAMS and cohort in BEST_PARAMS[model_type]:
                 params = BEST_PARAMS[model_type][cohort]
-                print("BEST PARAMs:", params)
-                print(f"Using best parameters for {model_type} on cohort {cohort}")
+                log(f"BEST PARAMs: {params}")
+                log(f"Using best parameters for {model_type} on cohort {cohort}")
             else:
                 params = model_config.get("default", {})
                 if cohort:
-                    print(f"Best parameters not found for {model_type} on cohort {cohort}, using default parameters")
+                    log(f"Best parameters not found for {model_type} on cohort {cohort}, using default parameters")
         
         # Create model with appropriate parameters
         model_class = cls.MODEL_CLASSES[model_type_lower]

@@ -14,6 +14,7 @@ from ml_model_training.data_loader import DataLoader
 from ml_model_training.ml_trainer import MLTrainer
 from ml_model_training.ml_evaluator import Result_evaluation
 from utils.preprocessing_utils import oversample_minority_with_groups
+from ts_model_training.logger import Logger
 
 # Set all random seeds for maximum reproducibility
 random.seed(RANDOM_SEED)
@@ -32,7 +33,8 @@ class MLTrainingPipeline:
                  agg_interval: int = 24,
                  days_before_discharge: int = 14,
                  prefix: str = '',
-                 random_seed: int = None):
+                 random_seed: int = None,
+                 action: str = 'train'):
         
         # Store configuration
         self.target_cohort = target_cohort
@@ -65,7 +67,16 @@ class MLTrainingPipeline:
             prefix=self.prefix,
             random_seed=self.random_seed
         )
-        
+
+        # Log file saved alongside the run's outputs (same Logger as the TS pipeline)
+        if action == 'prepare':
+            self.logger = Logger(str(self.paths.training), 'prepare_log.txt')
+        else:
+            self.logger = Logger(str(self.paths.results), f'{self.model_type}_log.txt')
+        self.log = self.logger.write
+        self.log(f"\n########## New run: action={action}, model={self.model_type} ##########")
+        self.log(f"Log file: {self.logger.log}")
+
         # Initialize components
         self.data_loader = DataLoader(
             target_cohort=self.target_cohort,
@@ -77,56 +88,56 @@ class MLTrainingPipeline:
             paths=self.paths,
             feat_type=self.feat_type,
             agg_interval=self.agg_interval,
-            days_before_discharge=self.days_before_discharge
+            days_before_discharge=self.days_before_discharge,
+            logger=self.logger
         )
-        
+
         self.trainer = MLTrainer(
             model_type=self.model_type,
             feature_combination_method=self.feature_combination_method,
             grid_search=self.grid_search_boolen,
             results_path=str(self.paths.outputs),
-            cohort=self.target_cohort
+            cohort=self.target_cohort,
+            logger=self.logger
         )
-        
-        self.evaluator = Result_evaluation()
-        
-    
+
+        self.evaluator = Result_evaluation(logger=self.logger)
+
+
     def _print_configuration(self):
-        """Print training configuration."""
-        print("=" * 60)
-        print("MACHINE LEARNING TRAINING CONFIGURATION")
-        print("=" * 60)
-        print(f"{'Parameter':<30} {'Value':<30}")
-        print("-" * 60)
-        print(f"{'Target Cohort':<30} {self.target_cohort:<30}")
-        print(f"{'Model Type':<30} {self.model_type:<30}")
-        print(f"{'Oversampling':<30} {self.oversampling_method:<30}")
-        print(f"{'Feature Selection':<30} {self.feature_selection_boolen:<30}")
-        print(f"{'Training Data Types':<30} {str(self.training_data_type):<30}")
-        print(f"{'Feature Method':<30} {self.feature_combination_method:<30}")
-        print(f"{'Grid Search':<30} {self.grid_search_boolen:<30}")
-        print(f"{'Number of Folds':<30} {self.num_folds:<30}")
-        print(f"{'Load Training Data':<30} {self.load_training_data_boolen:<30}")
-        print("=" * 60)
-        print(f"{'Temporal resolution':<30} {self.agg_interval:<30}")
-        print(f"{'Feature Type':<30} {self.feat_type:<30}")
-        print(f"{'Prefix':<30} {self.prefix:<30}")
-        print("Starting cross-validation...")
-        print()
-    
+        """Log training configuration."""
+        rows = [
+            ("Target Cohort", self.target_cohort),
+            ("Model Type", self.model_type),
+            ("Oversampling", self.oversampling_method),
+            ("Feature Selection", self.feature_selection_boolen),
+            ("Training Data Types", self.training_data_type),
+            ("Feature Method", self.feature_combination_method),
+            ("Grid Search", self.grid_search_boolen),
+            ("Number of Folds", self.num_folds),
+            ("Load Training Data", self.load_training_data_boolen),
+            ("Temporal resolution", self.agg_interval),
+            ("Feature Type", self.feat_type),
+            ("Prefix", self.prefix),
+        ]
+        lines = ["=" * 60, "MACHINE LEARNING TRAINING CONFIGURATION", "=" * 60,
+                 f"{'Parameter':<30} {'Value':<30}", "-" * 60]
+        lines += [f"{name:<30} {str(value):<30}" for name, value in rows]
+        lines += ["=" * 60]
+        self.log("\n" + "\n".join(lines))
+        self.log("Starting cross-validation...")
+
     def prepare_training_data(self):
         """Build feature matrices for all folds."""
-
-        
         for fold in range(self.num_folds):
-            print(f"Building feature matrices for fold {fold}...")
+            self.log(f"Building feature matrices for fold {fold}...")
             data_per_fold = self.data_loader.load_and_process_data(fold, load_training_data_boolen=False)
-            
+
             if data_per_fold is None:
-                print(f'training data not build for fold {fold}!')
+                self.log(f'training data not build for fold {fold}!')
                 break
-        
-        print("Feature matrices building completed!")
+
+        self.log("Feature matrices building completed!")
     
     def train(self):
         """Main training loop for machine learning models."""
@@ -134,13 +145,13 @@ class MLTrainingPipeline:
         self._print_configuration()
         
         for fold in range(self.num_folds):
-            print("========================== FOLD {0:2d} =========================".format(fold))
-            
+            self.log("========================== FOLD {0:2d} =========================".format(fold))
+
             # Load and process data
             data_per_fold = self.data_loader.load_and_process_data(fold, self.load_training_data_boolen)
-            
+
             if data_per_fold is None:
-                print(f'Training data not found for fold {fold}!')
+                self.log(f'Training data not found for fold {fold}!')
                 break
             
             X_train, Y_train, X_test, Y_test, X_val, Y_val, subj_ids_train, subj_ids_val = data_per_fold
@@ -153,7 +164,7 @@ class MLTrainingPipeline:
             
             # Apply oversampling if needed
             if self.oversampling_method == 'minority':
-                print("Oversampling applied. ")
+                self.log("Oversampling applied.")
                 X_train, Y_train, subj_ids_train = oversample_minority_with_groups(
                     X_train, Y_train, subj_ids_train, seed=RANDOM_SEED
                 )
@@ -163,7 +174,8 @@ class MLTrainingPipeline:
             test_metrics, best_params = self.trainer.train_model(X_train, Y_train, X_test, Y_test, fold, subj_ids_train)
             
             self.evaluator.evaluation_metrics(test_metrics, best_params, fold, self.model_type)
-        
+            self.log(f"Fold {fold} done.")
+
         # Save comprehensive results
         self.evaluator.save_results(self.model_type, self.paths.results)
 
@@ -219,8 +231,13 @@ def main():
         feat_type=args.feat_type,
         agg_interval = args.agg_interval,
         days_before_discharge=args.days_before_discharge,
-        prefix=args.prefix
+        prefix=args.prefix,
+        action=args.action
     )
+
+    # Log the full command-line configuration and resolved paths
+    pipeline.log("Command-line arguments:\n" + "\n".join(f"  {k}: {v}" for k, v in vars(args).items()))
+    pipeline.log("Paths:\n" + "\n".join(f"  {k}: {v}" for k, v in vars(pipeline.paths).items()))
 
     # Execute the requested action
     if args.action == 'prepare':

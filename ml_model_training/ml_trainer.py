@@ -21,7 +21,9 @@ class MLTrainer:
     """Handles ML model training logic."""
     
     def __init__(self, model_type: str, feature_combination_method: str, 
-                 grid_search: bool, results_path: str, cohort: str = None):
+                 grid_search: bool, results_path: str, cohort: str = None, logger=None):
+        self.logger = logger
+        self.log = logger.write if logger is not None else print
         self.model_type = model_type
         self.feature_combination_method = feature_combination_method
         self.grid_search = grid_search
@@ -34,8 +36,8 @@ class MLTrainer:
                    fold: int, subj_ids_train: pd.Series):
         """Train model and return evaluation metrics and best parameters."""
         
-        print('# number of features for training: ', len(X_train.columns))
-        print("==================== Model Training  =======================")
+        self.log(f'# number of features for training: {len(X_train.columns)}')
+        self.log("==================== Model Training  =======================")
         
         # Preprocess data based on model type
         X_train_processed, X_test_processed = self._preprocess_data(
@@ -86,16 +88,18 @@ class MLTrainer:
             self.model_type, 
             self.grid_search, 
             self.results_path,
-            self.cohort
+            self.cohort,
+            logger=self.logger
         )
     
     def _train_with_grid_search(self, model, X_train, Y_train, subj_ids_train, fold):
         """Train model with grid search."""
-        print(f"[Grid Search Enabled] for model: {self.model_type}")
+        self.log(f"[Grid Search Enabled] for model: {self.model_type}")
         
         # Get parameter grid
         model_config = MLModelFactory.get_model_config(self.model_type)
         param_grid = model_config.get("grid_search", {})
+        self.log(f"Parameter grid: {param_grid}")
         
         # Setup cross-validation with explicit random state
         cv = StratifiedGroupKFold(n_splits=3, shuffle=True, random_state=RANDOM_SEED)
@@ -112,8 +116,8 @@ class MLTrainer:
         
         grid_search.fit(X_train, Y_train, groups=subj_ids_train)
         
-        print("Best Parameters:", grid_search.best_params_)
-        print("Best Score (CV ROC AUC):", grid_search.best_score_)
+        self.log(f"Best Parameters: {grid_search.best_params_}")
+        self.log(f"Best Score (CV ROC AUC): {grid_search.best_score_}")
         
         # Save inner fold results for this outer fold
         self._save_inner_fold_results(grid_search, fold)

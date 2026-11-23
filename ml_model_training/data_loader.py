@@ -13,6 +13,7 @@ from utils.preprocessing_utils import fit_transform_gender, oversample_minority_
 from feature_processing.ml_feature_matrix_builder import FeatureExtractorFactory
 from utils.io_utils import load_pickle, save_pickle, fold_file
 from ts_model_training.extractor import ExtractorTrain
+from ts_model_training.logger import Logger
 
 
 class DataLoader:
@@ -28,7 +29,8 @@ class DataLoader:
                  paths: Any,
                  feat_type: str = 'VMD',
                  agg_interval: int = 24,
-                 days_before_discharge: int = 14):
+                 days_before_discharge: int = 14,
+                 logger: Optional[Logger] = None):
         """
         Initialize the data loader.
         
@@ -53,6 +55,8 @@ class DataLoader:
         self.feat_type = feat_type
         self.agg_interval = agg_interval
         self.days_before_discharge = days_before_discharge
+        self.logger = logger if logger is not None else Logger()
+        self.log = self.logger.write
         self.labs = None
         self.cohort = None
 
@@ -80,12 +84,12 @@ class DataLoader:
     
     def _load_pre_saved_data(self, fold: int) -> Optional[Tuple]:
         """Load previously saved training data."""
-        print("Loading previously saved training data...")
+        self.log("Loading previously saved training data...")
         base = self.paths.training
         x_train_path = fold_file(base, 'X_train', fold)
-        
+
         if not x_train_path.exists():
-            print('Training data not found!')
+            self.log(f'Training data not found: {x_train_path}')
             return None
         # Load all pre-saved data
         X_train = load_pickle(fold_file(base, 'X_train', fold))
@@ -101,7 +105,7 @@ class DataLoader:
 
     def _load_labs(self):
         if self.labs is None:
-            extractor = ExtractorTrain(SimpleNamespace(dataset=Path(self.saved_data_path).parent.name, cohort=self.target_cohort, days_before_discharge=self.days_before_discharge, logger=SimpleNamespace(write=print)))
+            extractor = ExtractorTrain(SimpleNamespace(dataset=Path(self.saved_data_path).parent.name, cohort=self.target_cohort, days_before_discharge=self.days_before_discharge, logger=self.logger))
             labs = pd.read_csv(extractor.data_path, usecols=['hadm_id', 'itemid', 'value', 'minute'])
             labs['bin'] = labs['minute'] // (60 * self.agg_interval)
             labs = labs[labs['bin'] >= 0]
@@ -118,10 +122,10 @@ class DataLoader:
             train_ids, val_ids, test_ids = pickle.load(f)
         self._load_labs()
 
-        print(f'Feature extractor type: {self.feature_extractor_type}')
-        print(f'Feature type: {self.feat_type}')
+        self.log(f'Feature extractor type: {self.feature_extractor_type}')
+        self.log(f'Feature type: {self.feat_type}')
         if self.feature_selection_boolen:
-            print(f'Feature selection applied (Top 100 features in cancer chemo cohort), Threshold: 100')
+            self.log(f'Feature selection applied (Top 100 features in cancer chemo cohort), Threshold: 100')
         # Extract features and labels for training split first (to get itemids and bins)
         X_train, Y_train, subj_ids_train, hadm_ids_train, train_itemids, train_bins = self._extract_data_split(train_ids, "training", fold)
         # Extract features for test and val splits using training itemids and bins
@@ -174,11 +178,10 @@ class DataLoader:
     
     def _display_dataset_info(self, X_train, Y_train, X_test, Y_test, X_val, Y_val):
         """Display information about the dataset."""
-        print(f'Dataset sizes - Train: {len(Y_train)}, Test: {len(Y_test)}, Validation: {len(Y_val)}')
+        self.log(f'Dataset sizes - Train: {len(Y_train)}, Test: {len(Y_test)}, Validation: {len(Y_val)}')
         # Data loading completed
-        print(f'Training data shape: {X_train.shape}')
-        print('Training data preview:')
-        print(X_train.head())
+        self.log(f'Training data shape: {X_train.shape}')
+        self.log('Training data preview:\n' + X_train.head().to_string())
     
     
     def _validate_data_leakage(self, train_ids, test_ids):
@@ -189,10 +192,10 @@ class DataLoader:
         test_admissions = set(test_ids[:, 1])
         
         if train_patients.intersection(test_patients):
-            print('WARNING: There are common patients in test and train sets!')
-        
+            self.log('WARNING: There are common patients in test and train sets!')
+
         if train_admissions.intersection(test_admissions):
-            print('WARNING: There are common admissions in test and train sets!')
+            self.log('WARNING: There are common admissions in test and train sets!')
     
     def _save_processed_data(self, X_train, Y_train, X_test, Y_test, X_val, Y_val, subj_ids_train, subj_ids_val, fold):
         """Save processed data for future use."""
