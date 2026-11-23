@@ -6,6 +6,7 @@ import argparse
 import pandas as pd
 import numpy as np
 import random
+from datetime import datetime
 from pathlib import Path
 from config.constants import PROJECT_ROOT, RANDOM_SEED
 from utils.io_utils import build_paths
@@ -29,6 +30,7 @@ class MLTrainingPipeline:
                  num_folds: int = 5,
                  feat_type: str = 'VMD',
                  agg_interval: int = 24,
+                 days_before_discharge: int = 14,
                  prefix: str = '',
                  random_seed: int = None):
         
@@ -45,6 +47,7 @@ class MLTrainingPipeline:
         self.num_folds = num_folds
         self.feat_type = feat_type
         self.agg_interval = agg_interval
+        self.days_before_discharge = days_before_discharge
         self.prefix = prefix
         self.random_seed = random_seed
         
@@ -73,7 +76,8 @@ class MLTrainingPipeline:
             saved_data_path=self.saved_data_path,
             paths=self.paths,
             feat_type=self.feat_type,
-            agg_interval=self.agg_interval
+            agg_interval=self.agg_interval,
+            days_before_discharge=self.days_before_discharge
         )
         
         self.trainer = MLTrainer(
@@ -185,15 +189,18 @@ def main():
                        choices=["V", "M", "D", "VMD", "VM", "VD", "MD"], 
                        default="VMD")
     parser.add_argument('--agg_interval', type=int, choices=[3, 6, 12, 24], default=24,
-                    help='Aggregation interval in hours (e.g., 3, 6, 12, 24)') 
+                    help='Aggregation interval in hours (e.g., 3, 6, 12, 24)')
+    parser.add_argument('--days_before_discharge', type=int, default=14)
     parser.add_argument('--num_folds', type=int, default=5, help='Number of cross-validation folds')
-    parser.add_argument('--prefix', type=str, default='', 
+    parser.add_argument('--prefix', type=str, default=None,
                        help='Prefix for output files')
     parser.add_argument('--action', type=str, default='train', 
                        choices=['prepare', 'train'],
                        help='Action to perform: prepare or train')
 
     args = parser.parse_args()
+    if args.prefix is None:
+        args.prefix = datetime.now().strftime("%d%m%y")
 
     saved_data_path = PROJECT_ROOT / args.dataset / 'saved_data'
 
@@ -211,6 +218,7 @@ def main():
         num_folds=args.num_folds,
         feat_type=args.feat_type,
         agg_interval = args.agg_interval,
+        days_before_discharge=args.days_before_discharge,
         prefix=args.prefix
     )
 

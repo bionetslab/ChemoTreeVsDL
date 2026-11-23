@@ -41,29 +41,18 @@ class TimeSeriesExtractor(BaseFeatureExtractor):
                         feat_type: str = "VMD", itemids: list = None, bins: list = None, **kwargs) -> Tuple[pd.DataFrame, pd.DataFrame, pd.Series, pd.Series]:
         """Extract time series features (VMD - Values, Missingness, Delta)."""
         
-        all_raw = []
-        all_demo = []
-        hadm_ids = []
-        subject_ids = []
-        agg_interval = kwargs.get('agg_interval', 24)
+        labs = kwargs['labs']
+        cohort = kwargs['cohort']
+        ids = ids[np.isin(ids[:, 1], labs['hadm_id'].unique())]
+        subject_ids = list(ids[:, 0])
+        hadm_ids = list(ids[:, 1])
 
-        for subject_id, hadm_id in ids:
-            raw_path = f"{saved_data_path}/processed_admission_features_csv/{target_cohort}/agg_interval_{agg_interval}h/{hadm_id}/raw_labs.csv"
-            if not os.path.exists(raw_path):
-                continue
-            all_raw.append(pd.read_csv(raw_path, header=0))
-            all_demo.append(pd.read_csv(f"{saved_data_path}/processed_admission_features_csv/{target_cohort}/agg_interval_{agg_interval}h/{hadm_id}/demo.csv", header=0))
-            hadm_ids.append(hadm_id)
-            subject_ids.append(subject_id)
-            
-        if not all_raw:
+        if not hadm_ids:
             return pd.DataFrame(), pd.DataFrame(), pd.Series([], name="subject_id"), pd.Series([], name="hadm_id")
-            
-        data = pd.concat(all_raw, ignore_index=True).rename(columns={"int": "bin"})
-        demo = pd.concat(all_demo, keys=hadm_ids).reset_index(level=1, drop=True)
-        
-        labels = pd.read_csv(f'{saved_data_path}/processed_admission_features_csv/{target_cohort}/agg_interval_{agg_interval}h/labels.csv', header=0)
-        y_df = labels.set_index("hadm_id").loc[hadm_ids, "label"].reset_index(drop=True)
+
+        data = labs[labs['hadm_id'].isin(hadm_ids)]
+        demo = cohort.loc[hadm_ids, ['age', 'gender']]
+        y_df = cohort.loc[hadm_ids, 'label'].reset_index(drop=True)
 
         if feature_threshold:
             selected_features = pd.read_csv(TOP_FEATURES_PATH)['itemid'].tolist()

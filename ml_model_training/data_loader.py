@@ -5,11 +5,14 @@ Data loading and processing module for ML/NN training.
 import pickle
 from pathlib import Path
 from re import sub
+from types import SimpleNamespace
 from typing import Tuple, Optional, Any, List
 
+import pandas as pd
 from utils.preprocessing_utils import fit_transform_gender, oversample_minority_with_groups
 from feature_processing.ml_feature_matrix_builder import FeatureExtractorFactory
 from utils.io_utils import load_pickle, save_pickle, fold_file
+from ts_model_training.extractor import ExtractorTrain
 
 
 class DataLoader:
@@ -24,7 +27,8 @@ class DataLoader:
                  saved_data_path: str,
                  paths: Any,
                  feat_type: str = 'VMD',
-                 agg_interval: int = 24):
+                 agg_interval: int = 24,
+                 days_before_discharge: int = 14):
         """
         Initialize the data loader.
         
@@ -48,7 +52,10 @@ class DataLoader:
         self.paths = paths
         self.feat_type = feat_type
         self.agg_interval = agg_interval
-        
+        self.days_before_discharge = days_before_discharge
+        self.labs = None
+        self.cohort = None
+
         self.feature_extractor_type = 'timeseries'
         
         # Initialize feature extractor
@@ -92,6 +99,15 @@ class DataLoader:
         
         return (X_train, Y_train, X_test, Y_test, X_val, Y_val, subj_ids_train, subj_ids_val)
 
+    def _load_labs(self):
+        if self.labs is None:
+            extractor = ExtractorTrain(SimpleNamespace(dataset=Path(self.saved_data_path).parent.name, cohort=self.target_cohort, days_before_discharge=self.days_before_discharge, logger=SimpleNamespace(write=print)))
+            labs = pd.read_csv(extractor.data_path, usecols=['hadm_id', 'itemid', 'value', 'minute'])
+            labs['bin'] = labs['minute'] // (60 * self.agg_interval)
+            labs = labs[labs['bin'] >= 0]
+            self.labs = labs.groupby(['hadm_id', 'itemid', 'bin'])['value'].mean().reset_index()
+            self.cohort = pd.read_csv(extractor.cohort_path, usecols=['hadm_id', 'age', 'gender', 'label']).set_index('hadm_id')
+
     def _extract_and_process_data(self, fold: int) -> Tuple:
         """Extract and process fresh data from folds."""
         # Load fold data
@@ -100,7 +116,8 @@ class DataLoader:
             raise FileNotFoundError(f"{fold_path} not found. Run: python -m utils.create_cv_folds --dataset {Path(self.saved_data_path).parent.name} --cohorts {self.target_cohort}")
         with open(fold_path, 'rb') as f:
             train_ids, val_ids, test_ids = pickle.load(f)
-            
+        self._load_labs()
+
         print(f'Feature extractor type: {self.feature_extractor_type}')
         print(f'Feature type: {self.feat_type}')
         if self.feature_selection_boolen:
@@ -148,7 +165,9 @@ class DataLoader:
             feat_type=self.feat_type,
             agg_interval=self.agg_interval,
             itemids=itemids,
-            bins=bins
+            bins=bins,
+            labs=self.labs,
+            cohort=self.cohort
         )
         
         return result
