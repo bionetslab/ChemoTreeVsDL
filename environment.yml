@@ -11,7 +11,6 @@ dependencies:
   - imbalanced-learn=0.12.4
   - xgboost=3.2.0
   - catboost=1.2.10
-  - pytorch=2.13.0
   - joblib=1.6.0
   - pyyaml=6.0.3
   - tqdm=4.70.0
@@ -22,4 +21,7 @@ dependencies:
   - ipywidgets=8.1.9
   - pip
   - pip:
+      - --extra-index-url https://download.pytorch.org/whl/cu130
+      - torch==2.13.0+cu130; sys_platform == "linux"
+      - torch==2.13.0; sys_platform == "darwin"
       - transformers==4.35.2

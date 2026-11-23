@@ -32,9 +32,9 @@ def extract_cohort_labs(mimic4_path: str, cohort: pd.DataFrame, time_col:str, dt
     chunksize = 10000000
     for chunk in tqdm(pd.read_csv(mimic4_path + "hosp/labevents.csv.gz", compression='gzip', usecols=usecols, dtype=dtypes, parse_dates=[time_col],chunksize=chunksize)):
 
-        chunk=chunk.dropna(subset=['valuenum'])
+        chunk=chunk.dropna(subset=['valuenum']).copy()
         chunk['valueuom']=chunk['valueuom'].fillna(0)
-        chunk=chunk[chunk['subject_id'].isin(cohort['subject_id'].unique())]
+        chunk=chunk[chunk['subject_id'].isin(cohort['subject_id'].unique())].copy()
         chunk['charttime']=pd.to_datetime(chunk['charttime'])
         chunk['hadm_id']=chunk['hadm_id'].fillna(0)
         chunk=chunk.dropna()
@@ -59,7 +59,7 @@ def drop_wrong_uom(data, cut_off):
         if(value_counts.size >1):
 #             count+=1
             most_frequent_measurement = value_counts.index[0]
-            frequency = value_counts[0]
+            frequency = value_counts.iloc[0]
 #             print(id_number,value_counts.size,frequency/num_observations)
             if(frequency/num_observations > cut_off):
                 values = uom
@@ -81,7 +81,7 @@ def extract_admission_labs(x, days,lab):
             (lab["subject_id"] == x.subject_id) & 
             (lab["charttime"] <= (x.dischtime))&
             (lab["charttime"] >= (x.dischtime - timedelta(days=days)))
-        ].sort_values("charttime")  
+        ].sort_values("charttime").copy()
     
     admit_lab["hadm_id"] = x.hadm_id     #assign admission's hadm_id   to the lab results 
     admit_lab["admittime"] = x.admittime #assign admission's admittime to lab results 
