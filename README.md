@@ -79,15 +79,15 @@ Run the cohort notebooks (from their own directory). Each one writes the cohort 
 # select the 100 most frequent labs (used for feature selection in MIMIC-IV)
 python -m cohort_and_features.mimic_iv.select_top_labs
 
-python -m cohort_and_features.mimic_iv.extract_features --cohort aplasia
-python -m cohort_and_features.mimic_iv.extract_features --cohort NF
+python -m cohort_and_features.mimic_iv.extract_features --cohort mimic_cohort_aplasia_45_days
+python -m cohort_and_features.mimic_iv.extract_features --cohort mimic_cohort_NF_30_days
 ```
 
 **UKEr**
 
 ```bash
-python -m cohort_and_features.uker.extract_features --cohort aplasia
-python -m cohort_and_features.uker.extract_features --cohort NF
+python -m cohort_and_features.uker.extract_features --cohort auker_cohort_aplasia_45_days
+python -m cohort_and_features.uker.extract_features --cohort uker_cohort_NF_30_days
 ```
 
 The observation window can be changed with `--days_before_discharge` (default: 14).

@@ -44,7 +44,7 @@ def extract_cohort_labs(mimic4_path: str, cohort: pd.DataFrame, time_col:str, dt
         else:
             lab_df_cohort = pd.concat([lab_df_cohort, chunk], ignore_index=True) #return all the lab results for the subjects
         
-    print("# Itemid: ", lab_df_cohort.itemid.nunique())
+    #print("# Itemid: ", lab_df_cohort.itemid.nunique())
 
     return lab_df_cohort   
 
