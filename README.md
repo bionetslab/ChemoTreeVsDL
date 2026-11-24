@@ -131,6 +131,18 @@ bash scripts/train_ml.sh uker train uker_cohort_NF_30_days "Random Forest"
 
 Several `train` jobs can run in parallel on the same prepared matrices. Do not run `prepare_ml_matrices` for a cohort while `train` jobs on that cohort are still running.
 
+The matrices can also be prepared for a single cohort directly with Python (same settings as the scripts; use `--feature_selection 1` for MIMIC-IV and `0` for UKEr):
+
+```bash
+# MIMIC-IV
+python -m training.ml.ml_main --action prepare_ml_matrices --dataset MIMIC_IV --cohort mimic_cohort_aplasia_45_days \
+    --features LAB DEMO --feature_method concatenate --feat_type VMD --agg_interval 24 --feature_selection 1
+
+# UKEr
+python -m training.ml.ml_main --action prepare_ml_matrices --dataset UKEr --cohort uker_cohort_NF_30_days \
+    --features LAB DEMO --feature_method concatenate --feat_type VMD --agg_interval 24 --feature_selection 0
+```
+
 #### Temporal deep models
 
 ```bash
