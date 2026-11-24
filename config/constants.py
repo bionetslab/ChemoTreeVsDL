@@ -1,14 +1,16 @@
 from pathlib import Path
+import os
 import sys
 import yaml
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 SUPPORTING_FILES_DIR = PROJECT_ROOT / 'supporting_files'
+SAVED_DATA_DIR = PROJECT_ROOT / 'saved_data'  # saved_data/<dataset>/{cohorts,features,folds,...}
 TOP_FEATURES_PATH = SUPPORTING_FILES_DIR / 'mimic_top_features_cancer_chemo.csv'
-MIMIC_DIR = '/Users/zy51nise/Documents/BIONETs/FLabNet/Data/mimiciv/2.0/'
+MIMIC_DIR = os.environ.get('MIMIC_DIR', '/path/to/mimiciv/3.1/')
 MIMIC_LABS_DIR = MIMIC_DIR +'hosp/labevents.csv.gz'
-UKER_DIR = '/home/jovyan/data_common/ped-data.db'
+UKER_DIR = os.environ.get('UKER_DIR', '/path/to/ped-data.db')
 
 
 
