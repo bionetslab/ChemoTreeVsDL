@@ -1,3 +1,4 @@
+import os
 import pandas as pd
 import numpy as np
 import sqlite3
@@ -48,7 +49,7 @@ class Extractor:
         self.cohort_path = self.saved_data_path / "cohorts" / f"{self.cohort}.csv.gz"
         self.features_path = self.saved_data_path / "features" / f"{self.input_features}.csv.gz"
         # temporal data path
-        self.data_dir = self.saved_data_path / "processed_admission_features_for_ts" / self.cohort 
+        self.data_dir = self.saved_data_path / "processed_admission_features" / self.cohort
         self.data_dir.mkdir(parents=True, exist_ok=True)    
         self.data_path = self.data_dir / f"{self.input_features}_to_ts.csv.gz"
         # CV split path
@@ -79,10 +80,12 @@ class ExtractorTrain(Extractor):
         admission_labs["day"] = admission_labs["hour"] / 24
         admission_labs[["minute", "hour", "day"]] = admission_labs[["minute", "hour", "day"]].astype("int")
 
-        # save to file
+        # save to file (write to temp file, then rename, so parallel jobs never read a partial file)
+        tmp_path = self.data_path.with_name(f"{self.data_path.name}.{os.getpid()}.tmp")
         admission_labs[["subject_id", "hadm_id", "itemid", "value", "minute", "hour", "day"]].to_csv(
-            self.data_path, index=False, compression="gzip"
+            tmp_path, index=False, compression="gzip"
         )
+        os.replace(tmp_path, self.data_path)
         self.args.logger.write(f"Labs processed and saved to {self.data_path}")
         
     def extract_uker_labs(self):
@@ -100,10 +103,12 @@ class ExtractorTrain(Extractor):
         admission_labs["minute"] = admission_labs["day"]*24*60
         admission_labs[["minute", "hour", "day"]] = admission_labs[["minute", "hour", "day"]].astype("int")
     
-        # save to file
+        # save to file (write to temp file, then rename, so parallel jobs never read a partial file)
+        tmp_path = self.data_path.with_name(f"{self.data_path.name}.{os.getpid()}.tmp")
         admission_labs[["subject_id", "hadm_id", "itemid", "value", "minute", "hour", "day"]].to_csv(
-            self.data_path, index=False, compression="gzip"
+            tmp_path, index=False, compression="gzip"
         )
+        os.replace(tmp_path, self.data_path)
         self.args.logger.write(f"Labs processed and saved to {self.data_path}")
             
             

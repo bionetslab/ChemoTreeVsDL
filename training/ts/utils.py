@@ -219,7 +219,7 @@ def set_all_paths(args, out=True):
     saved_data_path = SAVED_DATA_DIR / dataset
 
     feature_path = SUPPORTING_FILES_DIR
-    data_path = saved_data_path / "processed_admission_features_for_ts" / cohort /f"{input_features}_to_ts.csv.gz"
+    data_path = saved_data_path / "processed_admission_features" / cohort /f"{input_features}_to_ts.csv.gz"
     cohort_path = saved_data_path / "cohorts" / f"{cohort}.csv.gz"
 
     if args.split_seed is None:
