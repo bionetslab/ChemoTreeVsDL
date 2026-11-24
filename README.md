@@ -106,37 +106,46 @@ python -m preprocessing.create_cv_folds --dataset UKEr --cohorts uker_cohort_apl
 
 #### Classical models
 
+Classical models are trained in two steps: first build the feature matrices once per cohort, then train any number of models on them.
+
 ```bash
-bash scripts/train_ml.sh [mimic|uker] [prepare|train|full_run] [prefix]
+bash scripts/train_ml.sh <mimic|uker> prepare_ml_matrices [cohort|all]
+bash scripts/train_ml.sh <mimic|uker> train   [cohort|all] [model|all] [prefix]
 ```
 
-- `mimic` – for MIMIC-IV cohorts
-- `uker` – for Erlangen University Hospital cohorts
-
-Workflow options:
-- `prepare` – build the feature matrices for all folds
-- `train` – train models on the prepared feature matrices
-- `full_run` – prepare and train
-- `prefix` (optional) – prefix for output files (default: today's date, `ddmmyy`)
+- `mimic` – MIMIC-IV cohorts, `uker` – Uniklinikum Erlangen cohorts
+- `prepare_ml_matrices` – builds the per-fold feature matrices in `saved_data/<dataset>/ml_feature_matrices/<cohort>/` and records the settings and input files used in `config.json`
+- `train` – trains the models on the prepared matrices. It stops with a message if the matrices are missing, were prepared with other settings, or if the folds or lab files changed since `prepare_ml_matrices`; run `prepare_ml_matrices` again in that case.
+- `cohort` (optional) – e.g. `mimic_cohort_aplasia_45_days` (default: all cohorts of the dataset)
+- `model` (optional) – one of `"Random Forest"`, `"Logistic Regression"`, `Xgboost`, `CatBoost`, `"Gradient Boosting"` (default: all)
+- `prefix` (optional) – prefix for result folders (default: today's date, `ddmmyy`)
 
 Examples:
 
 ```bash
-bash scripts/train_ml.sh mimic full_run
-bash scripts/train_ml.sh uker full_run
+bash scripts/train_ml.sh mimic prepare_ml_matrices
+bash scripts/train_ml.sh mimic train
+bash scripts/train_ml.sh uker prepare_ml_matrices uker_cohort_NF_30_days
+bash scripts/train_ml.sh uker train uker_cohort_NF_30_days "Random Forest"
 ```
+
+Several `train` jobs can run in parallel on the same prepared matrices. Do not run `prepare_ml_matrices` for a cohort while `train` jobs on that cohort are still running.
 
 #### Temporal deep models
 
 ```bash
-bash scripts/train_ts.sh [mimic|uker] [prefix]
+bash scripts/train_ts.sh <mimic|uker> [cohort|all] [model|all] [prefix]
 ```
+
+- `model` (optional) – one of `gru`, `tcn`, `lstm`, `sand`, `grud`, `interpnet`, `strats`, `mlp` (default: all)
+
+No separate prepare step is needed: the time-series input is built automatically on first use.
 
 Examples:
 
 ```bash
 bash scripts/train_ts.sh mimic
-bash scripts/train_ts.sh uker
+bash scripts/train_ts.sh uker uker_cohort_NF_30_days gru
 ```
 
-This runs all temporal models (GRU, TCN, LSTM, SAnD, GRU-D, InterpNet, STraTS, MLP) over the 5 folds of both cohorts with nested grid search.
+Each run covers the 5 folds with nested grid search.

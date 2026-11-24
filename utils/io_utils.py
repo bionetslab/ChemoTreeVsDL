@@ -28,18 +28,8 @@ def build_training_dir(
     feat_type: str = "VMD",
     agg_interval: int = 24
 ) -> Path:
-    """Build training directory path with consistent structure."""
-    return (
-        base
-        / "training"
-        / cohort
-        / feature_method
-        / oversampling
-        / f"feature_selection_{feature_selection}"
-        / f"feat_type_{feat_type}"
-        / f"agg_interval_{agg_interval}h"
-
-    )
+    """Build the ML feature matrices directory: one folder per cohort, settings are stored in config.json inside."""
+    return base / "ml_feature_matrices" / cohort
 
 
 def build_results_dir(

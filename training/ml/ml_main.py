@@ -3,12 +3,13 @@ Main entry point for ML model training.
 """
 
 import argparse
+import json
 import pandas as pd
 import numpy as np
 import random
 from datetime import datetime
 from pathlib import Path
-from config.constants import PROJECT_ROOT, SAVED_DATA_DIR, RANDOM_SEED
+from config.constants import PROJECT_ROOT, SAVED_DATA_DIR, RANDOM_SEED, TOP_FEATURES_PATH
 from utils.io_utils import build_paths
 from training.ml.data_loader import DataLoader
 from training.ml.ml_trainer import MLTrainer
@@ -69,7 +70,7 @@ class MLTrainingPipeline:
         )
 
         # Log file saved alongside the run's outputs (same Logger as the TS pipeline)
-        if action == 'prepare':
+        if action == 'prepare_ml_matrices':
             self.logger = Logger(str(self.paths.training), 'prepare_log.txt')
         else:
             self.logger = Logger(str(self.paths.results), f'{self.model_type}_log.txt')
@@ -127,23 +128,66 @@ class MLTrainingPipeline:
         self.log("\n" + "\n".join(lines))
         self.log("Starting cross-validation...")
 
-    def prepare_training_data(self):
+    def _matrices_config(self):
+        """Settings and input files the feature matrices depend on (saved as config.json by prepare_ml_matrices)."""
+        inputs = [self.paths.folds / f'fold_{fold}.pkl' for fold in range(self.num_folds)]
+        # time-series labs file written by training/ts/extractor.py
+        input_features = f"{self.target_cohort}_admissions_labs_{self.days_before_discharge}_days"
+        inputs.append(Path(self.saved_data_path) / "processed_admission_features" / self.target_cohort / f"{input_features}_to_ts.csv.gz")
+        if self.feature_selection_boolen:
+            inputs.append(TOP_FEATURES_PATH)
+        return {
+            "settings": {
+                "dataset": Path(self.saved_data_path).name,
+                "cohort": self.target_cohort,
+                "days_before_discharge": self.days_before_discharge,
+                "agg_interval": self.agg_interval,
+                "feature_selection": self.feature_selection_boolen,
+                "feat_type": self.feat_type,
+                "feature_method": self.feature_combination_method,
+                "features": list(self.training_data_type),
+                "num_folds": self.num_folds,
+            },
+            "inputs": {str(p): datetime.fromtimestamp(p.stat().st_mtime).isoformat() if p.exists() else None for p in inputs},
+        }
+
+    def _check_matrices(self):
+        """Stop if the feature matrices are missing or were prepared with other settings/inputs."""
+        config_path = self.paths.training / "config.json"
+        prepare_cmd = f"python -m training.ml.ml_main --action prepare_ml_matrices --dataset {Path(self.saved_data_path).name} --cohort {self.target_cohort} (or: bash scripts/train_ml.sh <mimic|uker> prepare_ml_matrices {self.target_cohort})"
+        if not config_path.exists():
+            raise FileNotFoundError(f"No feature matrices found in {self.paths.training}. Run prepare_ml_matrices first:\n  {prepare_cmd}")
+        saved, current = json.loads(config_path.read_text()), self._matrices_config()
+        diffs = [f"  {k}: prepared={saved['settings'].get(k)}, requested={v}"
+                 for k, v in current["settings"].items() if saved["settings"].get(k) != v]
+        diffs += [f"  {p} changed since prepare_ml_matrices" for p, t in current["inputs"].items() if saved["inputs"].get(p) != t]
+        if diffs:
+            raise ValueError(f"Feature matrices in {self.paths.training} do not match this run:\n" + "\n".join(diffs) + f"\nRun prepare_ml_matrices again:\n  {prepare_cmd}")
+        self.log(f"Feature matrices match config: {config_path}")
+
+    def prepare_ml_matrices(self):
         """Build feature matrices for all folds."""
+        config_path = self.paths.training / "config.json"
+        config_path.unlink(missing_ok=True)  # matrices are invalid until all folds are rebuilt
         for fold in range(self.num_folds):
             self.log(f"Building feature matrices for fold {fold}...")
             data_per_fold = self.data_loader.load_and_process_data(fold, load_training_data_boolen=False)
 
             if data_per_fold is None:
                 self.log(f'training data not build for fold {fold}!')
-                break
+                return
 
-        self.log("Feature matrices building completed!")
+        # written last: marks the matrices as complete and records what they were built from
+        config_path.write_text(json.dumps(self._matrices_config(), indent=2))
+        self.log(f"Feature matrices building completed! Config saved to {config_path}")
     
     def train(self):
         """Main training loop for machine learning models."""
         
         self._print_configuration()
-        
+        if self.load_training_data_boolen:
+            self._check_matrices()
+
         for fold in range(self.num_folds):
             self.log("========================== FOLD {0:2d} =========================".format(fold))
 
@@ -207,8 +251,8 @@ def main():
     parser.add_argument('--prefix', type=str, default=None,
                        help='Prefix for output files')
     parser.add_argument('--action', type=str, default='train', 
-                       choices=['prepare', 'train'],
-                       help='Action to perform: prepare or train')
+                       choices=['prepare_ml_matrices', 'train'],
+                       help='Action to perform: prepare_ml_matrices or train')
 
     args = parser.parse_args()
     if args.prefix is None:
@@ -240,8 +284,8 @@ def main():
     pipeline.log("Paths:\n" + "\n".join(f"  {k}: {v}" for k, v in vars(pipeline.paths).items()))
 
     # Execute the requested action
-    if args.action == 'prepare':
-        pipeline.prepare_training_data()
+    if args.action == 'prepare_ml_matrices':
+        pipeline.prepare_ml_matrices()
     elif args.action == 'train':
         pipeline.train()
 
