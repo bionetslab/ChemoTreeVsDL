@@ -4,16 +4,23 @@ import argparse
 import numpy as np
 import pandas as pd
 from typing import Tuple
+import sys
+from pathlib import Path
 from sklearn.model_selection import StratifiedKFold, train_test_split
 from config.constants import PROJECT_ROOT, SAVED_DATA_DIR, RANDOM_SEED, num_folds
 
 def split_cv_folds (target_cohort:str, num_folds:int, saved_data_path:str, seed: int = None)  -> Tuple[np.ndarray, np.ndarray, np.ndarray] :
 
+    cohort_path = Path(saved_data_path) / "cohorts" / f"{target_cohort}.csv.gz"
+    if not cohort_path.exists():
+        raise FileNotFoundError(f"Cohort file not found: {cohort_path}")
     cohort = pd.read_csv(f'{saved_data_path}/cohorts/'+target_cohort+'.csv.gz', compression='gzip', parse_dates = ['admittime','dischtime'])
 
     subject_labels = cohort.groupby("subject_id")['label'].max().reset_index()
 
     effective_seed = RANDOM_SEED if seed is None else seed
+    print("cohort:", target_cohort)
+    print("Seed:", effective_seed)
     skf = StratifiedKFold(n_splits=num_folds, shuffle=True, random_state= effective_seed)
     for fold, (train_idx, test_idx) in enumerate(skf.split(subject_labels, subject_labels['label'])):
         test = subject_labels.loc[test_idx]
@@ -51,7 +58,7 @@ def split_cv_folds (target_cohort:str, num_folds:int, saved_data_path:str, seed:
         if common_subject_ids:
             print('There are common patients in test and train')
 
-    print("Splitied folds saved!")
+    print(f"Splitied folds saved to {save_path} !")
     return train_hadms, val_hadms, test_hadms
 
 
@@ -62,10 +69,16 @@ def main():
     parser.add_argument('--seeds', nargs='+', type=int, default=[None])
     args = parser.parse_args()
 
+    print("Dataset:",args.dataset)
+    
     saved_data_path = SAVED_DATA_DIR / args.dataset
     for cohort in args.cohorts:
         for seed in args.seeds:
-            split_cv_folds(cohort, num_folds, saved_data_path, seed)
+            try:
+                split_cv_folds(cohort, num_folds, saved_data_path, seed)
+            except FileNotFoundError as e:
+                print(f"Skipping {cohort}: {e}")
+                break  # file is missing for all seeds, so skip to the next cohort
 
 
 if __name__ == "__main__":
