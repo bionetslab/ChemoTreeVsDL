@@ -1,8 +1,8 @@
-# FLabBench - Chemotherapy Side Effect Prediction Pipeline
+# ChemoTreeVsDL - Chemotherapy Side Effect Prediction Pipeline
 
 This repository provides a reproducible pipeline to:
 
-- Extract cohorts from **MIMIC-IV** and a **Code dataset from a MII node** (Erlangen University Hospital, UKEr) for patients with cancer diagnoses undergoing chemotherapy.  
+- Extract cohorts of patients with cancer diagnoses undergoing chemotherapy from **MIMIC-IV** and the pediatric **MII Core Data Set** from Uniklinikum Erlangen (UKEr).  
 - Train **classical machine learning** and **temporal deep learning** models to predict chemotherapy-induced side effects using longitudinal lab data and demographic features.
 
 ## Models
@@ -12,7 +12,7 @@ This repository provides a reproducible pipeline to:
 - Other: Logistic Regression (LR), Multilayer Perceptron (MLP)  
 
 **Temporal models**  
-- Regular time series: GRU, LSTM, Temporal Convolutional Network (TCN), SAnD  
+- Regular time series: GRU, LSTM, TCN, SAnD  
 - Irregular time series: GRU-D, InterpNet, STraTS  
 
 ## Cohorts
@@ -32,44 +32,111 @@ This repository provides a reproducible pipeline to:
   - `ts_config_params.yaml` – Grid search parameters for neural network models
   - `ts_config_params_best.yaml` – Best parameters/cohort for neural network models
 
-- **ml_model_training/** – Training scripts for classical models
-- **ts_model_training/** – Training scripts for deep learning models
+- **cohort_and_features/** – Cohort definition notebooks and lab feature extraction scripts
+  - `mimic_iv/` – MIMIC-IV cohorts (`cohort_aplasia.ipynb`, `cohort_neutropenic_fever.ipynb`), `select_top_labs.py`, `extract_features.py`
+  - `uker/` – UKEr cohorts (`cohort_aplasia.ipynb`, `cohort_neutropenic_fever.ipynb`), `extract_features.py`
+- **preprocessing/** – CV fold splitting and feature matrix generation
+- **training/ml/** – Training code for classical models
+- **training/ts/** – Training code for deep learning models
+- **scripts/** – Shell scripts to run the training (`train_ml.sh`, `train_ts.sh`)
+- **notebooks/** – Interactive preprocessing and training notebook
+- **supporting_files/** – Code lists used for cohort definition
+- **saved_data/** – Generated outputs per dataset: `saved_data/<MIMIC_IV|UKEr>/{cohorts,features,folds,...}` (created at runtime)
 
 
 ## Usage
 
-1. Create the environment:
+All commands are run from the repository root.
+
+### 1. Create the environment
 
 ```bash
 conda env create -f environment.yml
-conda activate flabnet_ml_pipeline_env
+conda activate chemotreevsdl
 ```
-### 2. Train models
+
+### 2. Set the data paths (e.g. in your `~/.bashrc`)
+
+```bash
+export MIMIC_DIR=/path/to/mimiciv/3.1/
+export UKER_DIR=/path/to/ped-data.db
+```
+
+### 3. Build the cohorts
+
+Run the cohort notebooks (from their own directory). Each one writes the cohort to `saved_data/<dataset>/cohorts/`.
+
+| Dataset | Notebooks | Cohorts created |
+|---|---|---|
+| MIMIC-IV | `cohort_and_features/mimic_iv/cohort_aplasia.ipynb`, `cohort_and_features/mimic_iv/cohort_neutropenic_fever.ipynb` | `mimic_cohort_aplasia_45_days`, `mimic_cohort_NF_30_days` |
+| UKEr | `cohort_and_features/uker/cohort_aplasia.ipynb`, `cohort_and_features/uker/cohort_neutropenic_fever.ipynb` | `uker_cohort_aplasia_45_days`, `uker_cohort_NF_30_days` |
+
+### 4. Extract lab features
+
+**MIMIC-IV**
+
+```bash
+# select the 100 most frequent labs (used for feature selection in MIMIC-IV)
+python -m cohort_and_features.mimic_iv.select_top_labs
+
+python -m cohort_and_features.mimic_iv.extract_features --cohort aplasia
+python -m cohort_and_features.mimic_iv.extract_features --cohort NF
+```
+
+**UKEr**
+
+```bash
+python -m cohort_and_features.uker.extract_features --cohort aplasia
+python -m cohort_and_features.uker.extract_features --cohort NF
+```
+
+The observation window can be changed with `--days_before_discharge` (default: 14).
+
+### 5. Split cross-validation folds
+
+```bash
+# MIMIC-IV
+python -m preprocessing.create_cv_folds --dataset MIMIC_IV --cohorts mimic_cohort_aplasia_45_days mimic_cohort_NF_30_days
+
+# UKEr
+python -m preprocessing.create_cv_folds --dataset UKEr --cohorts uker_cohort_aplasia_45_days uker_cohort_NF_30_days
+```
+
+### 6. Train models
 
 #### Classical models
-Run the training script with:
 
 ```bash
-bash train_ml_models.sh [mimic|uker] [prepare|train|full_run]
+bash scripts/train_ml.sh [mimic|uker] [prepare|train|full_run] [prefix]
 ```
 
-- mimic – for MIMIC-IV cohorts
-- uker – for Erlangen University Hospital cohorts
+- `mimic` – for MIMIC-IV cohorts
+- `uker` – for Erlangen University Hospital cohorts
 
 Workflow options:
-- prepare – prepare inputs
-- train – train models on prepared inputs
-- full_run – prepare inputs and train models
+- `prepare` – build the feature matrices for all folds
+- `train` – train models on the prepared feature matrices
+- `full_run` – prepare and train
+- `prefix` (optional) – prefix for output files (default: today's date, `ddmmyy`)
 
-Example:
+Examples:
 
 ```bash
-bash train_ml_models.sh mimic full_run
+bash scripts/train_ml.sh mimic full_run
+bash scripts/train_ml.sh uker full_run
 ```
 
 #### Temporal deep models
-To run temporal deep models on already prepared inputs:
 
 ```bash
-bash train_ts_models.sh
+bash scripts/train_ts.sh [mimic|uker] [prefix]
 ```
+
+Examples:
+
+```bash
+bash scripts/train_ts.sh mimic
+bash scripts/train_ts.sh uker
+```
+
+This runs all temporal models (GRU, TCN, LSTM, SAnD, GRU-D, InterpNet, STraTS, MLP) over the 5 folds of both cohorts with nested grid search.
