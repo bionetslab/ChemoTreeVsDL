@@ -3,3 +3,5 @@
 .DS_Store
 **/saved_data
 logs/
+supporting_files/*
+!supporting_files/chemo_procedures.csv

@@ -3,6 +3,7 @@ Main entry point for ML model training.
 """
 
 import argparse
+import hashlib
 import json
 import pandas as pd
 import numpy as np
@@ -132,6 +133,15 @@ class MLTrainingPipeline:
         self.log("\n" + "\n".join(lines))
         self.log("Starting cross-validation...")
 
+    @staticmethod
+    def _file_hash(path):
+        """SHA-256 of a file's content."""
+        h = hashlib.sha256()
+        with open(path, 'rb') as f:
+            for chunk in iter(lambda: f.read(1 << 20), b''):
+                h.update(chunk)
+        return h.hexdigest()
+
     def _matrices_config(self):
         """Settings and input files the feature matrices depend on (saved as config.json by prepare_ml_matrices)."""
         inputs = [self.paths.folds / f'fold_{fold}.pkl' for fold in range(self.num_folds)]
@@ -152,7 +162,9 @@ class MLTrainingPipeline:
                 "features": list(self.training_data_type),
                 "num_folds": self.num_folds,
             },
-            "inputs": {str(p): datetime.fromtimestamp(p.stat().st_mtime).isoformat() if p.exists() else None for p in inputs},
+            # content hash per input file (path relative to the repo), so a rewrite with the same content or a moved repo still matches
+            "inputs": {str(Path(p).resolve().relative_to(PROJECT_ROOT)) if Path(p).resolve().is_relative_to(PROJECT_ROOT) else str(p):
+                       self._file_hash(p) if p.exists() else None for p in inputs},
         }
 
     def _check_matrices(self):
