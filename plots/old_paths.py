@@ -21,10 +21,14 @@ def _base(dataset, seed=None):
     return base / "multi_seed_training" if seed is not None else base
 
 
+# grid search folder names of the old ML results on disk (older notebook/code versions wrote grid_True / grid_False)
+GRID_DIRS = {True: "grid_nested", False: "grid_False"}
+
+
 def _ml_dir(dataset, cohort, grid, feat_type, agg_interval=None, seed=None, outputs=False):
     fs = dataset == "MIMIC_IV"
     path = (_base(dataset, seed) / ("outputs" if outputs else "results") / cohort / "non_time_series" / "concatenate"
-            / "minority" / f"feature_selection_{fs}" / f"grid_{grid}" / f"feat_type_{feat_type}")
+            / "minority" / f"feature_selection_{fs}" / GRID_DIRS[grid] / f"feat_type_{feat_type}")
     if agg_interval is not None:
         path = path / f"agg_interval_{agg_interval}h"
     if seed is not None:
