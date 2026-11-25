@@ -1,11 +1,11 @@
 """Fig. 2 alternative: pairwise one-sided Nadeau-Bengio corrected resampled t-tests with Benjamini-Hochberg correction,
 per cohort on 5 CV split seeds x 5 folds (multi-seed run, best parameters, VMD features, 24h bins).
 Shown as a dominance matrix: number of cohorts in which the row model is significantly better (p < 0.05) than the column model.
-Ported as is from analyse_results.ipynb (cells 118, 129-134). Not in the published paper (reviewers R2.8 / R3.5).
+Ported as is from analyse_results.ipynb. Not in the published paper (reviewers R2.8 / R3.5).
 
 Needs:  bash experiments/exp_multi_seed.sh, and the default folds saved_data/<dataset>/folds/<cohort>/fold_0.pkl (n_train, n_test)
 Usage:  python -m plots.fig2_nb_ttest
-Output: saved_data/figures/nb_ttest2.svg
+Output: saved_data/figures/nb_ttest2.pdf
 """
 import pickle
 
@@ -69,7 +69,6 @@ def compute_p_vals_nb_ttest(pivot, n_train_test, correction=True):
 
 
 def train_test_sizes():
-    # cell 130
     l_dict = {}
     for dataset, cohort in exps:
         file_path = SAVED_DATA_DIR / dataset / "folds" / cohort / "fold_0.pkl"
@@ -89,7 +88,6 @@ def main():
     combined_df = load_results()
     l_dict = train_test_sizes()
 
-    # cell 131
     models_ordered_dict = {}
     all_metric_p_matrices = {}
     run_cohorts = [c for c in cohorts if c in set(combined_df["cohort"]) and c in l_dict]
@@ -106,7 +104,6 @@ def main():
             all_p_matrices.append(p_matrix)
         all_metric_p_matrices[sel_metric] = all_p_matrices
 
-    # cell 132
     dominance_matrices = {}
     for sel_metric in ["AUC-ROC", "AUC-PRC", "f1_score"]:
         models_ordered = models_ordered_dict[sel_metric]
@@ -128,13 +125,11 @@ def main():
                                 dominance_matrix.loc[m2, m1] += 1
         dominance_matrices[sel_metric] = dominance_matrix
 
-    # cell 133
     cmap = LinearSegmentedColormap.from_list(
         "white_to_seagreen",
         ["#fffaf0", "#2e8b57"]  # cream/white to seagreen
     )
 
-    # cell 134
     fig, axes = plt.subplots(1, 3, figsize=(12, 4), sharex=False)
 
     for ax, (sel_metric, dominance_matrix) in zip(axes, dominance_matrices.items()):

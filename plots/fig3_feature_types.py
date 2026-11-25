@@ -1,11 +1,11 @@
 """Fig. 3: AUC-ROC (mean ± sd over 5 folds) of the non-temporal models for the feature types V, M, D, VD, VM, MD, VMD,
 nested 5x3 CV, 24h bins. Also the color wheel used as legend.
-Ported as is from analyse_results.ipynb (cells 9-14, 18; color wheel cells 12-13).
+Ported as is from analyse_results.ipynb.
 
 Needs:  bash experiments/exp_feature_types.sh   (V, M, D, VD, VM, MD)
         bash experiments/exp_full_run.sh        (VMD)
 Usage:  python -m plots.fig3_feature_types
-Output: saved_data/figures/feat_types_paper_AUC-ROC_sd.svg, saved_data/figures/color_wheel.{svg,pdf,png}
+Output: saved_data/figures/feat_types_paper_AUC-ROC_sd.pdf, saved_data/figures/color_wheel.pdf
 """
 import matplotlib
 matplotlib.use("Agg")
@@ -25,7 +25,6 @@ def feat_prefix(feat_type):
 
 
 def color_wheel():
-    # cell 13
     # Palette and labels
     palette_list = ["#feef00", "#f88f1c", "#ee4234", "#a54398", "#3c5daa", "#01a357"]
     feat_types = ["M", "MD", "D", "VD", "V", "VM"]
@@ -58,12 +57,12 @@ def color_wheel():
     ax.text(0, 0, center_label, ha='center', va='center', fontsize=15, color='white', zorder=3)
 
     ax.set(aspect="equal")
-    save(plt, "color_wheel", formats=("svg", "pdf", "png"))
+    save(plt, "color_wheel")
     plt.close()
 
 
 def main():
-    # cell 9: non-temporal models
+    # non-temporal models
     tree_models = ["random_forest", "xgboost", "gradient_boosting", "catboost", "logistic_regression"]
     feat_types = ["V", "M", "D", "VMD", "VM", "VD", "MD"]
     df_list = []
@@ -76,7 +75,7 @@ def main():
                     df_list.append(file)
     combined_df = concat(df_list)
 
-    # cells 10-11: MLP
+    # MLP
     df_list = []
     model = "mlp"
     for (dataset, cohort) in exps:
@@ -89,14 +88,12 @@ def main():
     combined_df_ = concat(df_list)
     combined_df_ = combined_df_[["cohort", "feat_type", "auroc", "auprc", "f1", "model_type"]].rename(columns={"auroc": "AUC-ROC", "auprc": "AUC-PRC", "f1": "f1_score", "model_type": "Model"})
 
-    # cell 12
     palette_list = ["#feef00", "#f88f1c", "#ee4234", "#a54398", "#3c5daa", "#01a357", "#484848"]
     feat_types = ["M", "MD", "D", "VD", "V", "VM", "VMD"]
     palette_dict = dict(zip(feat_types, palette_list))
 
     color_wheel()
 
-    # cell 14
     combined_df = pd.concat([combined_df, combined_df_])
 
     df_filtered = combined_df[combined_df["cohort"].isin(cohorts)].copy()
@@ -110,7 +107,6 @@ def main():
     df_filtered["Model"] = pd.Categorical(df_filtered["Model"], categories=model_order, ordered=True)
     df_filtered["feat_type"] = pd.Categorical(df_filtered["feat_type"], categories=["M", "D", "MD", "VD", "VM", "V", "VMD"], ordered=True)
 
-    # cell 18
     sns.set_style("whitegrid")
 
     mm = "AUC-ROC"

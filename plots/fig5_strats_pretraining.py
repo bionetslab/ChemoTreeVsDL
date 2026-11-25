@@ -1,11 +1,11 @@
 """Fig. 5: STraTS test metrics (mean over 5 folds) without pretraining and with pretraining on the dataset or the cohort,
 fine-tuning all layers or the final layers; colours show the difference to no pretraining.
-Ported as is from analyse_results.ipynb (cells 70-83, default rcParams as in the original figures).
-Both versions of the notebook are produced: pretraining.{svg,pdf,png} (cell 81) and pretraining2.svg (cell 83).
+Ported as is from analyse_results.ipynb (default rcParams as in the original figures).
+Both versions of the notebook are produced: pretraining.pdf and pretraining2.pdf.
 
 Needs:  bash experiments/exp_strats_pretraining.sh
 Usage:  python -m plots.fig5_strats_pretraining
-Output: saved_data/figures/pretraining.{svg,pdf,png}, saved_data/figures/pretraining2.svg
+Output: saved_data/figures/pretraining.pdf, saved_data/figures/pretraining2.pdf
 """
 import matplotlib
 matplotlib.use("Agg")
@@ -28,7 +28,6 @@ MODES = {
 
 
 def main():
-    # cell 70
     df_list = []
     for (dataset, cohort) in exps:
         for mode, (train_mode, prefix) in MODES.items():
@@ -38,7 +37,6 @@ def main():
                 df_list.append(file)
     combined_df = concat(df_list)
 
-    # cell 74
     df_plot = (
         combined_df[combined_df["split"] == "test"]
         .groupby(["cohort", "mode"])[print_metrics[:-1]]
@@ -48,22 +46,19 @@ def main():
     df_plot = df_plot.reindex(cohorts)
     df_plot.loc["Average"] = df_plot.mean(axis=0)
 
-    # cell 75
     df_plot_ = df_plot.copy()
     for m in print_metrics[:-1]:
         for mode in df_plot[m].columns:
             df_plot_[(m, mode)] = df_plot[(m, mode)] - df_plot[(m, "pt_none")]
 
-    # cell 79
     df_plot_.index = ['Aplasia (MIMIC-IV)', 'Aplasia (UKEr)', 'NF (MIMIC-IV)', 'NF (UKEr)', 'Average']
 
-    # cell 80
     vmin = df_plot_.min().min()
     vmax = df_plot_.max().max()
     extreme = max(np.abs(vmin), np.abs(vmax))
     norm = TwoSlopeNorm(vmin=-extreme, vcenter=0, vmax=extreme)
 
-    # cells 76, 81: version 1
+    # version 1
     pt_mode_dict = {'pt_none': 'no pretraining', 'pt_all_df_last_layers': 'dataset - final', 'pt_all_df_all_weights': 'dataset - all',
                     'pt_cohort_last_layers': 'cohort - final', 'pt_cohort_all_weights': 'cohort - all'}
 
@@ -113,10 +108,10 @@ def main():
     plt.subplots_adjust(wspace=0.3)
     plt.tight_layout()
     plt.suptitle("Pretraning Finetuning all final none all adm cohort adm", fontsize=14)
-    save(plt, "pretraining", formats=("svg", "pdf", "png"))
+    save(plt, "pretraining")
     plt.close()
 
-    # cells 82, 83: version 2
+    # version 2
     pt_mode_dict = {'pt_none': 'none', 'pt_all_df_last_layers': 'final\ndataset', 'pt_all_df_all_weights': 'all\ndataset',
                     'pt_cohort_last_layers': 'final\ncohort', 'pt_cohort_all_weights': 'all\ncohort'}
 

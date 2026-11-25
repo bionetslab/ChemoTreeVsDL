@@ -118,7 +118,7 @@ def report_missing():
         print(f"\n{len(_missing)} result files missing (skipped):\n" + missing_text())
 
 
-def save(fig_or_plt, name, formats=("svg",), **kwargs):
+def save(fig_or_plt, name, formats=("pdf",), **kwargs):
     """Save a figure to saved_data/figures/<name>.<fmt>."""
     FIGURES_DIR.mkdir(parents=True, exist_ok=True)
     for fmt in formats:

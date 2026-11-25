@@ -1,6 +1,6 @@
 """Fig. 6 and Fig. S2-S4: CatBoost feature importance (PredictionValuesChange) averaged over the 5 outer folds,
 VMD features, 24h bins: top 20 features, importance summed per lab test, per time bin and per V/M/D.
-Ported as is from analyse_feature_importance.ipynb (cells 2, 7-21), one set of plots per cohort.
+Ported as is from analyse_feature_importance.ipynb, one set of plots per cohort.
 
 Needs:  bash experiments/exp_full_run.sh all catboost
         MIMIC_DIR (MIMIC-IV, for d_labitems) and UKER_DIR (UKEr database, for the loinc table) set in the environment,
@@ -29,7 +29,6 @@ PREFIX = "full_run"
 
 
 def load_labitems(dataset):
-    # cell 2
     if dataset == "MIMIC_IV":
         return pd.read_csv(MIMIC_DIR + "hosp/d_labitems.csv.gz", compression="gzip")
 
@@ -65,7 +64,6 @@ def extract_itemid_from_feature(feature_name):
 def plot_cohort(dataset, cohort, d_labitems):
     output_dir = ml_run_dir(dataset, cohort, MODEL_TYPE, PREFIX)
 
-    # cell 7
     all_folds_importance = []
     for fold in range(NUM_FOLDS):
         if old_paths.OLD_RESULTS_HOME:
@@ -88,7 +86,6 @@ def plot_cohort(dataset, cohort, d_labitems):
 
     avg_df = avg_df.sort_values(by='imp_mean', ascending=False)
 
-    # cell 9
     avg_df[['itemid', 'V/M/D', 'bin']] = avg_df['feature'].apply(extract_itemid_from_feature).apply(pd.Series)
 
     if "mimic" in cohort:
@@ -109,7 +106,6 @@ def plot_cohort(dataset, cohort, d_labitems):
 
     avg_df.loc[avg_df['clinical_name'].str.lower() == 'monocytes', 'clinical_name'] = 'Monocytes (%)'
 
-    # cell 12
     title_font = 32
     label_font = 30
     ticks_font = 28
@@ -117,7 +113,6 @@ def plot_cohort(dataset, cohort, d_labitems):
     save_path = FIGURES_DIR / "feature_importance" / cohort
     os.makedirs(save_path, exist_ok=True)
 
-    # cell 13
     avg_df['feature_label'] = avg_df['feature']
 
     mask = ~avg_df['feature'].isin(['age', 'gender'])
@@ -158,10 +153,8 @@ def plot_cohort(dataset, cohort, d_labitems):
     plt.savefig(f'{save_path}/feature_importance_plot_new.pdf', dpi=300)
     plt.close()
 
-    # cell 15
     top_features = avg_df
 
-    # cell 17
     fig1, ax1 = plt.subplots(figsize=(14, 8))
 
     label_counts = top_features.groupby("clinical_name")["imp_mean"].sum().round(2).sort_values(ascending=False).head(10)
@@ -186,7 +179,6 @@ def plot_cohort(dataset, cohort, d_labitems):
     plt.savefig(f'{save_path}/clinical_labels_distribution_new.pdf', dpi=300)
     plt.close()
 
-    # cell 19
     fig3, ax3 = plt.subplots(figsize=(14, 8))
     bin_counts = top_features.groupby("bin")["imp_mean"].sum().round(2).sort_values(ascending=False)
     unique_bins = bin_counts.unique()
@@ -211,7 +203,6 @@ def plot_cohort(dataset, cohort, d_labitems):
     plt.savefig(f'{save_path}/bin_distribution_new.pdf', dpi=300)
     plt.close()
 
-    # cell 21
     fig2, ax2 = plt.subplots(figsize=(6, 6))
 
     vmd_counts = top_features.groupby('V/M/D')['imp_mean'].sum().round(2).sort_values(ascending=False)

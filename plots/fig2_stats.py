@@ -1,10 +1,10 @@
 """Fig. 2: pairwise one-sided Wilcoxon tests with Benjamini-Hochberg correction between all models,
 on 5 CV split seeds x 5 folds x 4 cohorts (multi-seed run, best parameters, VMD features, 24h bins).
-Ported as is from analyse_results.ipynb (cells 129, 142, 144, 145, 147, make_p_val_cmap from cell 122).
+Ported as is from analyse_results.ipynb.
 
 Needs:  bash experiments/exp_multi_seed.sh
 Usage:  python -m plots.fig2_stats
-Output: saved_data/figures/wilcoxon_onesided_asimmetric.svg
+Output: saved_data/figures/wilcoxon_onesided_asimmetric.pdf
 """
 import matplotlib
 matplotlib.use("Agg")
@@ -88,7 +88,6 @@ def compute_one_sided_p_vals(pivot, correction=True):
 
 
 def load_results():
-    # cell 129
     df_list = []
     for (dataset, cohort) in exps:
         for fold_seed in SEEDS:
@@ -115,7 +114,6 @@ def load_results():
 def main():
     combined_df = load_results()
 
-    # cell 144
     models_ordered_dict = {}
     all_metric_p_matrices = {}
     for sel_metric in ["AUC-ROC", "AUC-PRC", "f1_score"]:
@@ -126,7 +124,6 @@ def main():
         p_matrix = compute_one_sided_p_vals(pivot, correction=True)
         all_metric_p_matrices[sel_metric] = p_matrix
 
-    # cell 145
     plt.rcParams.update({
         "font.size": 14,          # base font size
         "axes.labelsize": 14,     # axis labels
@@ -137,7 +134,6 @@ def main():
         "legend.title_fontsize": 14
     })
 
-    # cell 147
     sns.set_style("white")
     cmap, norm = make_p_val_cmap()
     fig, axes = plt.subplots(1, 3, figsize=(12, 5.4), sharex=False, sharey=False)

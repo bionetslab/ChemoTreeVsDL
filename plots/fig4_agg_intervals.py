@@ -1,12 +1,12 @@
 """Fig. 4: AUC-ROC (mean ± sd over 5 folds) on MIMIC-IV for the aggregation intervals 3/6/12/24h (non-temporal and
 regular TS models) and for GRU-D/STraTS with timestamps retained vs dropped. Nested 5x3 CV, VMD features.
-Ported as is from analyse_results.ipynb (cells 88-109, 115; rcParams of cell 62, which were active when it was drawn).
+Ported as is from analyse_results.ipynb (with the rcParams that were active when it was drawn).
 
 Needs:  bash experiments/exp_agg_intervals.sh   (3, 6, 12h)
         bash experiments/exp_drop_timestamps.sh (timestamps dropped)
         bash experiments/exp_full_run.sh        (24h, timestamps retained)
 Usage:  python -m plots.fig4_agg_intervals
-Output: saved_data/figures/agg_int_up_sd.svg
+Output: saved_data/figures/agg_int_up_sd.pdf
 """
 import matplotlib
 matplotlib.use("Agg")
@@ -27,7 +27,7 @@ def agg_prefix(agg_int):
 
 
 def main():
-    # cell 88: regular TS models
+    # regular TS models
     df_list = []
     for model in ["gru", "tcn", "lstm", "sand", "mlp"]:
         for (dataset, cohort) in exps[:2]:
@@ -37,10 +37,9 @@ def main():
                     file["mode"] = mode
                     df_list.append(file)
     combined_df = concat(df_list)
-    # cell 91
     df1 = combined_df[["cohort", "model_type", "agg_int", "auroc"]]
 
-    # cell 92: non-temporal models
+    # non-temporal models
     tree_models = ["logistic_regression", "random_forest", "xgboost", "gradient_boosting", "catboost"]
     agg_intervals = [3, 6, 12, 24]
     df_list = []
@@ -54,11 +53,10 @@ def main():
                     file["agg_int"] = agg_int
                     df_list.append(file)
     combined_df = concat(df_list)
-    # cell 95
     df1t = combined_df[["cohort", "Model", "agg_int", "AUC-ROC"]].rename(columns={"Model": "model_type", "AUC-ROC": "auroc"})
     df1 = pd.concat([df1, df1t])
 
-    # cell 102: irregular TS models with timestamps dropped / retained
+    # irregular TS models with timestamps dropped / retained
     df_list = []
     for (dataset, cohort) in exps[:2]:
         for model in ["grud", "interpnet", "strats"]:
@@ -68,19 +66,15 @@ def main():
                     file["mode"] = mode
                     df_list.append(file)
     combined_df = concat(df_list)
-    # cell 105
     df2 = combined_df[["cohort", "model_type", "mode", "auroc"]].copy()
     df2["mode"] = df2["mode"].map({"with_timestamps": "retained", "dropped_timestamps": "dropped"})
-    # cell 106
     df = pd.concat([df1.rename(columns={"agg_int": "mode"}), df2])
 
-    # cell 107
     cmap = sns.color_palette("Spectral", as_cmap=True)
     flare_cols = [cmap(i / 8) for i in range(8)]
     hue_colors = {"3": flare_cols[3], "6": flare_cols[2], "12": flare_cols[1], "24": flare_cols[0],
                   "retained": flare_cols[6], "dropped": flare_cols[7]}
 
-    # cell 108
     sub_cohorts = ["mimic_cohort_NF_30_days", "mimic_cohort_aplasia_45_days"]
     x_order = ["LR", "MLP", "RF", "GB", "XGB", "CatB", "GRU", "LSTM", "TCN", "SAnD", "GRU-D", "STraTS"]
 
@@ -88,10 +82,9 @@ def main():
     df_filtered["model_type"] = df_filtered["model_type"].map(model_names)
     df_filtered["cohort"] = df_filtered["cohort"].map(cohort_names)
     df_filtered["model_type"] = pd.Categorical(df_filtered["model_type"], categories=x_order, ordered=True)
-    # cell 109
     df_filtered["mode"] = df_filtered["mode"].astype("str")
 
-    # cell 62 (rcParams active when this figure was drawn)
+    # rcParams active when this figure was drawn
     plt.rcParams.update({
         "font.size": 14,          # base font size
         "axes.labelsize": 14,     # axis labels
@@ -102,7 +95,6 @@ def main():
         "legend.title_fontsize": 14
     })
 
-    # cell 115
     sns.set_style("whitegrid")
 
     g = sns.catplot(

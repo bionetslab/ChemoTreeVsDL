@@ -1,5 +1,5 @@
 """Table 1: test metrics (mean and std over the 5 outer folds), nested 5x3 CV, VMD features, 24h bins.
-Ported from analyse_results.ipynb (cell 28: ML models, cell 32: TS models).
+Ported from analyse_results.ipynb.
 
 Needs:  bash experiments/exp_full_run.sh
 Usage:  python -m plots.table1
@@ -18,7 +18,7 @@ def main():
     pd.set_option("display.max_columns", None)
     FIGURES_DIR.mkdir(parents=True, exist_ok=True)
 
-    # ML models (cell 28)
+    # ML models
     combined_df = concat([read_ml(dataset, cohort, model, PREFIX) for (dataset, cohort) in exps for model in tree_models])
     table_ml = combined_df.groupby(["cohort", "Model"])[["AUC-ROC", "AUC-PRC", "f1_score"]].agg(
         ["mean", lambda x: x.std(ddof=1)]
@@ -31,7 +31,7 @@ def main():
     print(table_ml)
     table_ml.to_csv(FIGURES_DIR / "table1_ml.csv")
 
-    # TS models (cell 32)
+    # TS models
     combined_df = concat([read_ts(dataset, cohort, model, PREFIX) for model in models for (dataset, cohort) in exps])
     table_ts = (combined_df
      .groupby(["cohort", "model_type"])[print_metrics]

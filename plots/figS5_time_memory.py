@@ -1,13 +1,13 @@
 """Fig. S5: number of parameters, peak memory and time for training and inference, summed over the 5 folds,
 non-temporal models on CPU and TS models on GPU, best parameters, VMD features, 24h bins.
-Ported as is from analyse_results.ipynb (cells 47-62).
+Ported as is from analyse_results.ipynb.
 
 Needs:  TS: training.ts.main with --grid best --config_path experiments/configs/ts_config_params_tm.yaml
             --prefix tm_gpu (and tm_cpu); there is no experiment script for this yet.
         ML: <model>_tm.csv files with columns fold, train time, train peak memory, inference time, inference peak memory.
             The code that wrote them in the old pipeline has not been found yet, so ML models are skipped if missing.
 Usage:  python -m plots.figS5_time_memory
-Output: saved_data/figures/time_memory_log.{svg,pdf}
+Output: saved_data/figures/time_memory_log.pdf
 """
 import colorsys
 
@@ -47,20 +47,21 @@ def lighten_color(color, amount=0.5):
 
 
 def main():
-    # cell 47
     tm_metrics_sub = ['total_parameters', 'total_peak_memory', 'inference_peak_memory', 'epoch_train_time', 'total_train_time', 'total_inference_time']
     tm_metrics_sub_names = ['# parameters', 'training peak memory', 'inference peak memory', 'epoch training time', 'total training time', 'total inference time']
     n_metrics = len(tm_metrics_sub)
 
-    # cells 48, 50: TS models on GPU and CPU
+    # TS models on GPU and CPU
     ts_models = ["gru", "tcn", "lstm", "sand", "grud", "interpnet", "strats", "mlp"]
     combined_df = concat([read_ts(dataset, cohort, model, TS_GPU_PREFIX, grid="best") for model in ts_models for (dataset, cohort) in exps])
     combined_df_gpu = combined_df[combined_df["split"] == "test"][["fold", "model_type", "cohort"] + tm_metrics_sub]
+    n_missing = len(_missing)
     cpu = [read_ts(dataset, cohort, model, TS_CPU_PREFIX, grid="best") for model in ts_models for (dataset, cohort) in exps]
+    del _missing[n_missing:]  # not all models were run on CPU, as in the notebook: don't list missing tm_cpu files
     combined_df_cpu = (pd.concat([d for d in cpu if d is not None], ignore_index=True)[["fold", "model_type", "cohort"] + tm_metrics_sub]
                        if any(d is not None for d in cpu) else pd.DataFrame(columns=["fold", "model_type", "cohort"] + tm_metrics_sub))
 
-    # cell 53: non-temporal models
+    # non-temporal models
     df_list = []
     for model in tree_models:
         for (dataset, cohort) in exps:
@@ -78,21 +79,17 @@ def main():
         combined_df_trees["cohort"] = []
     combined_df_trees.columns = ['fold', 'total_train_time', 'total_peak_memory', 'total_inference_time', 'inference_peak_memory', 'model_type', 'cohort']
 
-    # cell 56
     combined_df_gpu["model_type"] = combined_df_gpu["model_type"].map(model_names)
     combined_df_gpu["model_type"] = combined_df_gpu["model_type"] + " [GPU]"
     combined_df_trees["model_type"] = combined_df_trees["model_type"].map(model_names)
     combined_df_trees["model_type"] = combined_df_trees["model_type"] + " [CPU]"
-    # cells 57-58
     df = pd.concat([combined_df_gpu, combined_df_cpu, combined_df_trees])
     df['inference_peak_memory'] = df['inference_peak_memory'] / 1000
     df['total_peak_memory'] = df['total_peak_memory'] / 1000
 
-    # cell 60
     cohort_colors = plt.get_cmap("Set2").colors
     cohort_colors = [lighten_color(c, amount=0.9) for c in cohort_colors]
 
-    # cell 62
     sns.set_style("whitegrid")
 
     plt.rcParams.update({
@@ -164,7 +161,7 @@ def main():
     fig.legend(handles, labels, title="", loc="lower center", ncol=len(labels))
 
     plt.tight_layout(rect=[0.0, 0.05, 1, 1])
-    save(plt, "time_memory_log", formats=("svg", "pdf"))
+    save(plt, "time_memory_log")
     plt.close()
     report_missing()
 
