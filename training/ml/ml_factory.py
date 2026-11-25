@@ -40,7 +40,7 @@ class MLModelFactory:
         
         # Get parameters based on training mode
         if grid_search:
-            params = model_config.get("grid_search", {})
+            params = model_config.get("default", {})
         else:
             # Use best parameters if available and cohort is provided
             if cohort and model_type in BEST_PARAMS and cohort in BEST_PARAMS[model_type]:
