@@ -1,8 +1,8 @@
 #!/bin/bash
 # Train one model on one cohort.
-# Usage: bash scripts/train_model.sh <cohort> <model> [prefix]
-#   bash scripts/train_model.sh mimic_cohort_aplasia_45_days "Random Forest"
-#   bash scripts/train_model.sh uker_cohort_NF_30_days gru
+# Usage: bash scripts/train_single_setting.sh <cohort> <model> [prefix]
+#   bash scripts/train_single_setting.sh mimic_cohort_aplasia_45_days random_forest
+#   bash scripts/train_single_setting.sh uker_cohort_NF_30_days gru
 # ML models need prepared matrices first: bash scripts/train_ml.sh <mimic|uker> prepare_ml_matrices
 cohort="$1"
 model="$2"

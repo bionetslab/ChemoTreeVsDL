@@ -1,4 +1,4 @@
-Gradient Boosting:
+gradient_boosting:
   default:
     learning_rate: 0.1
     max_iter: 200
@@ -15,7 +15,7 @@ Gradient Boosting:
     #  - null
     #  - {0: 1, 1: 2}
 
-Logistic Regression:
+logistic_regression:
   default:
     C: 0.1
     penalty: l2
@@ -31,7 +31,7 @@ Logistic Regression:
       - {0: 1, 1: 2}
       - {0: 1, 1: 5}
 
-Random Forest:
+random_forest:
   default:
     n_estimators: 150
     max_depth: 10
@@ -48,7 +48,7 @@ Random Forest:
       - {0: 1, 1: 1}
       - {0: 1, 1: 2}
 
-Xgboost:
+xgboost:
   default:
     learning_rate: 0.1
     max_depth: 5
@@ -67,7 +67,7 @@ Xgboost:
 
 
 
-CatBoost:
+catboost:
   default:
     learning_rate: 0.1
     depth: 6

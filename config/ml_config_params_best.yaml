@@ -1,4 +1,4 @@
-Gradient Boosting:
+gradient_boosting:
   mimic_cohort_NF_30_days:
     learning_rate: 0.10
     max_iter: 200
@@ -16,7 +16,7 @@ Gradient Boosting:
     max_iter: 200
     max_depth: null
 
-Logistic Regression:
+logistic_regression:
   mimic_cohort_NF_30_days:
     C: 0.01
     penalty: l2
@@ -38,7 +38,7 @@ Logistic Regression:
     class_weight: null
     max_iter: 2000
 
-Random Forest:
+random_forest:
   mimic_cohort_NF_30_days:
     n_estimators: 250
     max_depth: 10
@@ -60,7 +60,7 @@ Random Forest:
     min_samples_split: 5
     class_weight: {0: 1, 1: 1}
 
-Xgboost:
+xgboost:
   mimic_cohort_NF_30_days:
     learning_rate: 0.01
     max_depth: 3
@@ -90,7 +90,7 @@ Xgboost:
     objective: binary:logistic
     eval_metric: logloss
 
-CatBoost:
+catboost:
   mimic_cohort_NF_30_days:
     depth: 8
     learning_rate: 0.03

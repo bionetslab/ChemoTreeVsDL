@@ -1,7 +1,7 @@
 #!/bin/bash
 prefix="${3:-$(date +%d%m%y)}"
 feature_types=("VMD") #("D" "VD" "VM" "MD") #"V" "M" "D" "VD" "VM" "MD"
-models=("Random Forest" "Logistic Regression" "Xgboost" "CatBoost" "Gradient Boosting")
+models=("random_forest" "logistic_regression" "xgboost" "catboost" "gradient_boosting")
 agg_intervals=("24") # "12" "6" "3")
 
 
@@ -49,7 +49,7 @@ run_mimic() {
                 if [ "$action" = "prepare" ]; then
                     echo "=========================================="
                     echo "Preparing: $cohort, $feat_type, $interval"
-                    run_command "$dataset" "$cohort" "Random Forest" "$feat_type" "$feature_selection" "$interval" "$action"
+                    run_command "$dataset" "$cohort" "random_forest" "$feat_type" "$feature_selection" "$interval" "$action"
                 else
                     for model in "${models[@]}"; do
                         echo "=========================================="
@@ -77,7 +77,7 @@ run_uker() {
                 if [ "$action" = "prepare" ]; then
                     echo "=========================================="
                     echo "Preparing: $cohort, $feat_type, $interval"
-                    run_command "$dataset" "$cohort" "Random Forest" "$feat_type" "$feature_selection" "$interval" "$action"
+                    run_command "$dataset" "$cohort" "random_forest" "$feat_type" "$feature_selection" "$interval" "$action"
                 else
                     for model in "${models[@]}"; do
                         echo "=========================================="

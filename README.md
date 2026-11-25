@@ -116,7 +116,7 @@ bash scripts/train_ml.sh <mimic|uker> train   [cohort|all] [model|all] [prefix]
 - `prepare_ml_matrices` – builds the per-fold feature matrices in `saved_data/<dataset>/ml_feature_matrices/<cohort>/` and records the settings and input files used in `config.json`
 - `train` – trains the models on the prepared matrices. It stops with a message if the matrices are missing, were prepared with other settings, or if the folds or lab files changed since `prepare_ml_matrices`; run `prepare_ml_matrices` again in that case.
 - `cohort` (optional) – e.g. `mimic_cohort_aplasia_45_days` (default: all cohorts of the dataset)
-- `model` (optional) – one of `"Random Forest"`, `"Logistic Regression"`, `Xgboost`, `CatBoost`, `"Gradient Boosting"` (default: all)
+- `model` (optional) – one of `random_forest`, `logistic_regression`, `xgboost`, `catboost`, `gradient_boosting` (default: all)
 - `prefix` (optional) – prefix for result folders (default: today's date, `ddmmyy`)
 
 Examples:
@@ -125,7 +125,7 @@ Examples:
 bash scripts/train_ml.sh mimic prepare_ml_matrices
 bash scripts/train_ml.sh mimic train
 bash scripts/train_ml.sh uker prepare_ml_matrices uker_cohort_NF_30_days
-bash scripts/train_ml.sh uker train uker_cohort_NF_30_days "Random Forest"
+bash scripts/train_ml.sh uker train uker_cohort_NF_30_days random_forest
 ```
 
 Several `train` jobs can run in parallel on the same prepared matrices. Do not run `prepare_ml_matrices` for a cohort while `train` jobs on that cohort are still running.

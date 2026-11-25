@@ -70,13 +70,13 @@ class MLTrainer:
         X_test_processed = X_test.copy()
         
         # Logistic Regression requires scaling
-        if model_type == "Logistic Regression":
+        if model_type == "logistic_regression":
             scaler = StandardScaler()
             X_train_processed = scaler.fit_transform(X_train_processed)
             X_test_processed = scaler.transform(X_test_processed)
         
         # XGBoost with aggregation needs numeric conversion
-        elif model_type == "Xgboost" and feature_method == 'aggregate':
+        elif model_type == "xgboost" and feature_method == 'aggregate':
             X_train_processed = X_train_processed.apply(pd.to_numeric, errors='coerce')
             X_test_processed = X_test_processed.apply(pd.to_numeric, errors='coerce')
         
@@ -199,7 +199,7 @@ class MLTrainer:
 
         self.save_model(model, fold)
         # Save feature importance 
-        if self.model_type in ["Random Forest","CatBoost"]:
+        if self.model_type in ["random_forest","catboost"]:
             self.save_outputImp(Y_test, prob[:, 1], logits, model.feature_importances_, features, fold)
 
         return eval_metrics

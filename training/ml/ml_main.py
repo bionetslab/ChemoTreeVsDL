@@ -231,8 +231,8 @@ def main():
     parser.add_argument('--dataset', type=str, default='MIMIC_IV', help='Dataset name')
     parser.add_argument('--cohort', type=str, default='mimic_cohort_NF_30_days', help='Target cohort')
     parser.add_argument('--model_type', type=str, 
-                       choices=['Logistic Regression', 'Random Forest', 'Gradient Boosting', 'Xgboost', 'CatBoost'], 
-                       default='Random Forest')
+                       choices=['logistic_regression', 'random_forest', 'gradient_boosting', 'xgboost', 'catboost'], 
+                       default='random_forest')
     parser.add_argument('--features', nargs='+', default=['LAB', 'DEMO'], 
                        help='List of feature types (e.g., LAB DEMO)')
     parser.add_argument('--feature_method', type=str, choices=['concatenate', 'aggregate'], 
