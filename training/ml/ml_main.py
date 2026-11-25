@@ -301,6 +301,8 @@ def main():
     parser.add_argument('--num_folds', type=int, default=5, help='Number of cross-validation folds')
     parser.add_argument('--prefix', type=str, default=None,
                        help='Prefix for output files')
+    parser.add_argument('--split_seed', type=int, default=None,
+                       help='CV split seed for multi-seed training (uses multi_seed_training/folds/<cohort>/seed_<n>)')
     parser.add_argument('--action', type=str, default='train', 
                        choices=['prepare_ml_matrices', 'train'],
                        help='Action to perform: prepare_ml_matrices or train')
@@ -327,6 +329,7 @@ def main():
         agg_interval = args.agg_interval,
         days_before_discharge=args.days_before_discharge,
         prefix=args.prefix,
+        random_seed=args.split_seed,
         action=args.action
     )
 
