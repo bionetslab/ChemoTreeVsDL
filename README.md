@@ -39,7 +39,6 @@ This repository provides a reproducible pipeline to:
 - **training/ml/** – Training code for classical models
 - **training/ts/** – Training code for deep learning models
 - **scripts/** – Shell scripts to run the training (`train_ml.sh`, `train_ts.sh`)
-- **notebooks/** – Interactive preprocessing and training notebook
 - **supporting_files/** – Code lists used for cohort definition
 - **saved_data/** – Generated outputs per dataset: `saved_data/<MIMIC_IV|UKEr>/{cohorts,features,folds,...}` (created at runtime)
 
@@ -86,7 +85,7 @@ python -m cohort_and_features.mimic_iv.extract_features --cohort mimic_cohort_NF
 **UKEr**
 
 ```bash
-python -m cohort_and_features.uker.extract_features --cohort auker_cohort_aplasia_45_days
+python -m cohort_and_features.uker.extract_features --cohort uker_cohort_aplasia_45_days
 python -m cohort_and_features.uker.extract_features --cohort uker_cohort_NF_30_days
 ```
 

@@ -119,7 +119,7 @@ def extract_disease_cohort(mimic4_path:str, subject_col:str, visit_col:str, admi
     
     visit_pts['age']=visit_pts['anchor_age']
     visit_pts = visit_pts.loc[visit_pts['age'] >= 18]
-    print('# all  patients older that 18: ', visit_pts['subject_id'].nunique())
+    print('# all  patients older than 18: ', visit_pts['subject_id'].nunique())
     print('---------------------------------------------------------------------------------------------')
     
     ##Add Demo data
@@ -135,7 +135,7 @@ def extract_chemo_cohort(df:pd.DataFrame, mimic4_path:str):
     proc_code = pd.read_csv(SUPPORTING_FILES_DIR / 'chemo_procedures.csv',header=0, chunksize=None, delimiter=';') #input from Jakob
     
     icd_code = proc_code['icd_code'].tolist()
-    icd_code=icd_code[:47] # Last row is for Z51 ommited
+    icd_code=icd_code[:47] # Last row is for Z51 omitted
     
     chemo_ids= extract_procedure_pts(mimic4_path,icd_code) #all admissions for all patients for the icd_code
     df['chemo'] = df['hadm_id'].isin(chemo_ids['hadm_id']).astype(int)

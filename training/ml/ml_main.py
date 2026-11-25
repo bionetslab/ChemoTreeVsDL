@@ -174,7 +174,7 @@ class MLTrainingPipeline:
             data_per_fold = self.data_loader.load_and_process_data(fold, load_training_data_boolen=False)
 
             if data_per_fold is None:
-                self.log(f'training data not build for fold {fold}!')
+                self.log(f'training data not built for fold {fold}!')
                 return
 
         # written last: marks the matrices as complete and records what they were built from

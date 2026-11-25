@@ -140,7 +140,7 @@ class Loss(nn.Module):
         if(self.npv):
             npv_val=neg_p/(neg_p+fn)
             
-        #################           Callibration         #######################
+        #################           Calibration         #######################
         if(self.callb):
             if(self.callbPlot and plot_generation):
                 ECE, MCE = self.calb_metrics(prob,labels,True)

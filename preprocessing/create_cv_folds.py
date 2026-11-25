@@ -58,7 +58,7 @@ def split_cv_folds (target_cohort:str, num_folds:int, saved_data_path:str, seed:
         if common_subject_ids:
             print('There are common patients in test and train')
 
-    print(f"Splitied folds saved to {save_path} !")
+    print(f"CV folds saved to {save_path} !")
     return train_hadms, val_hadms, test_hadms
 
 
