@@ -7,6 +7,7 @@ import json
 import pandas as pd
 import numpy as np
 import random
+from dataclasses import replace
 from datetime import datetime
 from pathlib import Path
 from config.constants import PROJECT_ROOT, SAVED_DATA_DIR, RANDOM_SEED, TOP_FEATURES_PATH
@@ -59,12 +60,7 @@ class MLTrainingPipeline:
         self.paths = build_paths(
             base=base,
             cohort=self.target_cohort,
-            feature_method=self.feature_combination_method,
-            oversampling=self.oversampling_method,
-            feature_selection=self.feature_selection_boolen,
-            grid_search=self.grid_search_boolen,
-            feat_type=self.feat_type,
-            agg_interval=self.agg_interval,
+            model_type=self.model_type,
             prefix=self.prefix,
             random_seed=self.random_seed
         )
@@ -73,10 +69,18 @@ class MLTrainingPipeline:
         if action == 'prepare_ml_matrices':
             self.logger = Logger(str(self.paths.training), 'prepare_log.txt')
         else:
-            self.logger = Logger(str(self.paths.results), f'{self.model_type}_log.txt')
+            requested_dir = self.paths.results
+            self.paths = replace(self.paths, results=self._resolve_run_dir())
+            self.paths.results.mkdir(parents=True, exist_ok=True)
+            self.logger = Logger(str(self.paths.results), 'log.txt')
         self.log = self.logger.write
         self.log(f"\n########## New run: action={action}, model={self.model_type} ##########")
         self.log(f"Log file: {self.logger.log}")
+        if action != 'prepare_ml_matrices':
+            if self.paths.results != requested_dir:
+                self.log(f"{requested_dir} holds a run with other settings, saving this run in {self.paths.results}")
+            elif (self.paths.results / "results_final.csv").exists():
+                self.log(f"Overwriting previous run with the same settings in {self.paths.results}")
 
         # Initialize components
         self.data_loader = DataLoader(
@@ -97,7 +101,7 @@ class MLTrainingPipeline:
             model_type=self.model_type,
             feature_combination_method=self.feature_combination_method,
             grid_search=self.grid_search_boolen,
-            results_path=str(self.paths.outputs),
+            results_path=str(self.paths.results),
             cohort=self.target_cohort,
             logger=self.logger
         )
@@ -165,6 +169,41 @@ class MLTrainingPipeline:
             raise ValueError(f"Feature matrices in {self.paths.training} do not match this run:\n" + "\n".join(diffs) + f"\nRun prepare_ml_matrices again:\n  {prepare_cmd}")
         self.log(f"Feature matrices match config: {config_path}")
 
+    def _run_settings(self):
+        """Settings of this training run, saved as columns in results_final.csv (they are not part of the path)."""
+        return {
+            "dataset": Path(self.saved_data_path).name,
+            "cohort": self.target_cohort,
+            "prefix": self.prefix,
+            "random_seed": self.random_seed,
+            "features": list(self.training_data_type),
+            "feature_method": self.feature_combination_method,
+            "oversampling": self.oversampling_method,
+            "feature_selection": self.feature_selection_boolen,
+            "grid_search": self.grid_search_boolen,
+            "load_data": self.load_training_data_boolen,
+            "feat_type": self.feat_type,
+            "agg_interval": self.agg_interval,
+            "days_before_discharge": self.days_before_discharge,
+            "num_folds": self.num_folds,
+        }
+
+    def _same_settings(self, results_file):
+        """True if results_file was trained with the same settings as this run."""
+        # read as text so e.g. prefix "011225" and an empty random_seed compare as written
+        saved = pd.read_csv(results_file, nrows=1, dtype=str, keep_default_na=False).iloc[0]
+        return all(saved.get(k) == ("" if v is None else str(v)) for k, v in self._run_settings().items())
+
+    def _resolve_run_dir(self):
+        """Run folder for this run: <prefix>/ if it is empty or holds a run with the same settings (overwritten),
+        otherwise the first <prefix>_2/, <prefix>_3/, ... that is."""
+        base, n = self.paths.results, 1
+        run_dir = base
+        while (run_dir / "results_final.csv").exists() and not self._same_settings(run_dir / "results_final.csv"):
+            n += 1
+            run_dir = base.with_name(f"{base.name}_{n}")
+        return run_dir
+
     def prepare_ml_matrices(self):
         """Build feature matrices for all folds."""
         config_path = self.paths.training / "config.json"
@@ -221,7 +260,7 @@ class MLTrainingPipeline:
             self.log(f"Fold {fold} done.")
 
         # Save comprehensive results
-        self.evaluator.save_results(self.model_type, self.paths.results)
+        self.evaluator.save_results(self.model_type, self.paths.results, self._run_settings())
 
 
 def main():

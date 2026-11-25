@@ -309,17 +309,19 @@ class Result_evaluation:
         self.log("\n=== AVERAGE METRICS OVER ALL FOLDS ===\n" + df.to_string(index=False, float_format="%.4f"))
         return df
     
-    def save_results(self, model_type, output_path):
-        """Save per-fold metrics + params + averages to one CSV file."""
+    def save_results(self, model_type, output_path, settings=None):
+        """Save run settings + per-fold metrics + params + averages to one CSV file."""
+        settings = {k: str(v) if isinstance(v, list) else v for k, v in (settings or {}).items()}
         # Per-fold results (wide table)
         folds_df = pd.DataFrame(self.all_folds_metrics)
         params_df = pd.DataFrame(self.all_folds_params)
         info_df = pd.DataFrame(self.all_folds_info)
-        folds_with_params = pd.concat([info_df, folds_df, params_df], axis=1)
+        settings_df = pd.DataFrame([settings] * len(info_df))
+        folds_with_params = pd.concat([settings_df, info_df, folds_df, params_df], axis=1)
 
         # --- build average row in the same wide format ---
         avg_df = self.average_metrics_df()  # your existing function (long format)
-        avg_row = {"Fold": "Average", "Model": model_type}
+        avg_row = {**settings, "Fold": "Average", "Model": model_type}
 
         for _, row in avg_df.iterrows():
             metric = row["Metric"]
@@ -340,7 +342,7 @@ class Result_evaluation:
 
         # Save
         os.makedirs(output_path, exist_ok=True)
-        file_path = os.path.join(output_path, f"{model_type}_results.csv")
+        file_path = os.path.join(output_path, "results_final.csv")
         final_df.to_csv(file_path, index=False)
         self.log(f"Results saved to {file_path}")
         return final_df

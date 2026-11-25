@@ -15,102 +15,37 @@ class RunPaths:
     """Container for all experiment-related directory paths."""
     training: Path
     results: Path
-    outputs: Path
     folds: Path
 
 
-def build_training_dir(
-    base: Path, 
-    cohort: str, 
-    feature_method: str, 
-    oversampling: str, 
-    feature_selection: bool, 
-    feat_type: str = "VMD",
-    agg_interval: int = 24
-) -> Path:
+def build_training_dir(base: Path, cohort: str) -> Path:
     """Build the ML feature matrices directory: one folder per cohort, settings are stored in config.json inside."""
     return base / "ml_feature_matrices" / cohort
 
 
-def build_results_dir(
-    base: Path, 
-    cohort: str, 
-    feature_method: str, 
-    oversampling: str, 
-    feature_selection: bool, 
-    grid_search: bool, 
-    feat_type: str = "VMD",
-    agg_interval: int = 24,
-    prefix: str = None
-) -> Path:
-    """Build results directory path with consistent structure."""
-    return (
-        base
-        / "results"
-        / cohort
-        / "non_time_series"
-        / feature_method
-        / oversampling
-        / f"feature_selection_{feature_selection}"
-        / f"grid_{grid_search}"
-        / f"feat_type_{feat_type}"
-        / f"agg_interval_{agg_interval}h"
-    )
+def build_results_dir(base: Path, cohort: str, model_type: str) -> Path:
+    """Build the ML results directory: one folder per model, run settings are stored in results_final.csv inside."""
+    return base / "results" / cohort / "non_time_series" / model_type
 
-
-
-
-def build_outputs_dir(
-    base: Path, 
-    cohort: str, 
-    feature_method: str, 
-    oversampling: str, 
-    feature_selection: bool, 
-    grid_search: bool, 
-    feat_type: str = "VMD",
-    agg_interval: int = 24,
-    prefix: str = None
-) -> Path:
-    """Build outputs directory path with consistent structure."""
-    return (
-        base
-        / "outputs"
-        / cohort
-        / "non_time_series"
-        / feature_method
-        / oversampling
-        / f"feature_selection_{feature_selection}"
-        / f"grid_{grid_search}"
-        / f"feat_type_{feat_type}"
-        / f"agg_interval_{agg_interval}h"
-    )
-    
 
 
 def build_paths(
     base: Path,
     cohort: str,
-    feature_method: str,
-    oversampling: str,
-    feature_selection: bool= True,
-    grid_search: bool = False,
-    feat_type: str = "VMD",
-    agg_interval: int = 24,
+    model_type: str,
     prefix: str = None,
     random_seed: int = None
 ) -> RunPaths:
     """
-    Build and create all necessary directory paths for an experiment.
+    Build the directory paths for an ML experiment.
+
+    Layout: <base>/results/<cohort>/non_time_series/<model_type>/[seed_<n>/]<prefix>/
+    The results directory is not created here (only training runs write to it).
     
     Args:
         base: Base directory for all experiments
         cohort: Name of the cohort
-        feature_method: Feature extraction method
-        oversampling: Oversampling strategy
-        feature_selection: Whether feature selection is enabled
-        grid_search: Whether grid search is enabled
-        feat_type: Type of features (default: "VMD")
-        agg_interval: Aggregation interval in hours (default: 24)
+        model_type: ML model type (e.g. random_forest)
         prefix: Optional prefix for organizing runs (default: None)
         random_seed: Optional random seed for reproducibility (default: None)
         
@@ -125,39 +60,28 @@ def build_paths(
         base = base / f"multi_seed_training"
         
         
-    training = build_training_dir(
-        base, cohort, feature_method, oversampling, feature_selection, feat_type, agg_interval
-    )
-    results = build_results_dir(
-        base, cohort, feature_method, oversampling, feature_selection, grid_search, feat_type, agg_interval, prefix
-    )
-    outputs = build_outputs_dir(
-        base, cohort, feature_method, oversampling, feature_selection, grid_search, feat_type, agg_interval, prefix
-    )
+    training = build_training_dir(base, cohort)
+    results = build_results_dir(base, cohort, model_type)
     folds = base / "folds" / cohort 
     
     if random_seed:
         training = training / f"seed_{random_seed}"
         results = results / f"seed_{random_seed}"
-        outputs = outputs / f"seed_{random_seed}"
         folds = folds / f"seed_{random_seed}"
         
     if prefix:
         results = results / prefix
-        outputs = outputs / prefix
         
 
         
     # Create all directories atomically
     try:
         training.mkdir(parents=True, exist_ok=True)
-        results.mkdir(parents=True, exist_ok=True)
-        outputs.mkdir(parents=True, exist_ok=True)
         folds.mkdir(parents=True, exist_ok=True)
     except OSError as e:
         raise OSError(f"Failed to create directories: {e}") from e
     
-    return RunPaths(training=training, results=results, outputs=outputs, folds=folds)
+    return RunPaths(training=training, results=results, folds=folds)
 
 
 def atomic_write_bytes(path: Path, data: bytes) -> None:

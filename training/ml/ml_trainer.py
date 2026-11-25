@@ -45,7 +45,7 @@ class MLTrainer:
         )
         
         # Create model
-        model = self._create_model()
+        model = self._create_model(fold)
         
         # Train model
         if self.grid_search:
@@ -82,12 +82,18 @@ class MLTrainer:
         
         return X_train_processed, X_test_processed
     
-    def _create_model(self):
+    def _fold_dir(self, fold):
+        """Per-fold output folder inside the run folder (fold_<k>/)."""
+        fold_dir = Path(self.results_path) / f"fold_{fold}"
+        fold_dir.mkdir(parents=True, exist_ok=True)
+        return fold_dir
+
+    def _create_model(self, fold):
         """Create model using factory."""
         return MLModelFactory.create_model(
             self.model_type, 
             self.grid_search, 
-            self.results_path,
+            str(self._fold_dir(fold)),
             self.cohort,
             logger=self.logger
         )
@@ -138,8 +144,7 @@ class MLTrainer:
 
         
         
-        results_dir = Path(self.results_path)
-        results_dir.mkdir(parents=True, exist_ok=True)
+        results_dir = self._fold_dir(outer_fold)
         
         cv_results = grid_search.cv_results_
         
@@ -174,7 +179,7 @@ class MLTrainer:
             inner_fold_results['all_combinations'].append(combination)
         
         # Save results for this outer fold
-        fold_file = results_dir / f'{self.model_type}_inner_folds_fold_{outer_fold}.json'
+        fold_file = results_dir / 'grid_results.json'
         with open(fold_file, 'w') as f:
             json.dump(inner_fold_results, f, indent=2)
         
@@ -206,7 +211,7 @@ class MLTrainer:
     
     def save_model(self, model, fold):
         """Save trained model."""
-        model_path = os.path.join(self.results_path, f'{self.model_type}_model_fold{fold}.joblib')
+        model_path = self._fold_dir(fold) / 'model.joblib'
         joblib.dump(model, model_path)
     
     def save_outputImp(self, labels, prob, logits, importance, features, fold):
@@ -217,10 +222,10 @@ class MLTrainer:
         output_df['Logits'] = np.asarray(logits)
 
 
-        with open(os.path.join(self.results_path, f'{self.model_type}_output_dict_fold{fold}.pkl'), 'wb') as fp:
+        with open(self._fold_dir(fold) / 'output_dict.pkl', 'wb') as fp:
                pickle.dump(output_df, fp)
         
         imp_df = pd.DataFrame()
         imp_df['imp'] = importance
         imp_df['feature'] = features
-        imp_df.sort_values(by='imp', ascending=False).to_csv(os.path.join(self.results_path, f'{self.model_type}_feature_importance_fold{fold}.csv'), index=False)
+        imp_df.sort_values(by='imp', ascending=False).to_csv(self._fold_dir(fold) / 'feature_importance.csv', index=False)
