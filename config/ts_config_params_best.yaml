@@ -1,3 +1,8 @@
+# Best hyperparameters per model and cohort, chosen after nested CV (--grid nested):
+# the inner-CV AUROC of each parameter combination was averaged over all 15 runs
+# (3 inner folds x 5 outer folds), and the combination with the highest mean was kept;
+# mean_epochs is the mean early-stopping epoch of that combination.
+#
 global:
   seed: 42
   train_batch_size: 32

@@ -1,3 +1,7 @@
+# Best hyperparameters per model and cohort, chosen after nested CV (grid_search on):
+# the inner-CV ROC AUC of each parameter combination was averaged over all inner folds
+# of all 5 outer folds, and the combination with the highest mean was kept.
+
 gradient_boosting:
   mimic_cohort_NF_30_days:
     learning_rate: 0.10
